@@ -22,10 +22,6 @@ apply plugin: 'com.android.application'
 android {
 
     compileSdkVersion 23
-<<<<<<< HEAD
-
-=======
->>>>>>> upstream/alpha
 
     signingConfigs {
         debug {
