@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.internal.android.dx.ssa.back.SsaToRop;
+
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
@@ -108,38 +110,67 @@ public class dropper extends LinearOpMode {
             motorBackRight.setPower(v4);
 
             /**DROPPER*/
-            if (!gamepad1.right_bumper && !gamepad1.left_bumper && !gamepad1.a && gamepad1.b) {
-                while (dropperServo.getPosition() > dUnload) {
-                    dPos = dropperServo.getPosition();
-                    dPos -= 0.09;
-                    dropperServo.setPosition(dPos);
-                }
-                if (dPos < dUnload) {
-                    dPos = dUnload;
-                    dropperServo.setPosition(dPos);
-                }
-            }
-            if (!gamepad1.b && gamepad1.a) {
-                while (dropperServo.getPosition() < dLoad) {
-                    dPos = dropperServo.getPosition();
-                    dPos += 0.09;
-                    dropperServo.setPosition(dPos);
-                }
-                if (dPos > dLoad) {
-                    dPos = dLoad;
-                    dropperServo.setPosition(dPos);
-                }
+//            if (!gamepad1.right_bumper && !gamepad1.left_bumper && !gamepad1.a && gamepad1.b) {
+//                while (dropperServo.getPosition() > dUnload) {
+//                    dPos = dropperServo.getPosition();
+//                    dPos -= 0.09;
+//                    dropperServo.setPosition(dPos);
+//                }
+//                if (dPos < dUnload) {
+//                    dPos = dUnload;
+//                    dropperServo.setPosition(dPos);
+//                }
+//            }
+//            if (!gamepad1.b && gamepad1.a) {
+//                while (dropperServo.getPosition() < dLoad) {
+//                    dPos = dropperServo.getPosition();
+//                    dPos += 0.09;
+//                    dropperServo.setPosition(dPos);
+//                }
+//                if (dPos > dLoad) {
+//                    dPos = dLoad;
+//                    dropperServo.setPosition(dPos);
+//                }
             }
             if (gamepad1.right_bumper && !gamepad1.left_bumper) {
-                dropperDC.setPower(1);
+                dropperDC.setPower(gamepad1.right_trigger);
             }
             if (!gamepad1.right_bumper && gamepad1.left_bumper && !dropperExtLimit.isPressed()) {
-                dropperDC.setPower(-0.7);
+                dropperDC.setPower(-gamepad1.right_trigger);
             }
             if (!gamepad1.left_bumper && !gamepad1.right_bumper) {
                 dropperDC.setPower(0);
             }
 
+            if (gamepad1.x) {
+//                Thread.sleep(750);
+//                if (!gamepad1.x) {
+//                    xPos += 0.01;
+//                }
+                dPos += 0.01;
+            }
+
+            if (gamepad1.a) {
+//                 Thread.sleep(750);
+//                if (!gamepad1.a) {
+//                    xPos -= 0.01;
+//                }
+                dPos -= 0.01;
+            }
+
+            dropperServo.setPosition(dPos);
+
+            telemetry.addData("xServo: ", dropperServo.getPosition());
+            telemetry.update();
+
+            telemetry.addData("dropper ticks: ", dropperDC.getCurrentPosition());
+            telemetry.addData("dropper power: ", dropperDC.getPower());
+            telemetry.update();
+
+            if (dropperExtLimit.isPressed()) {
+                dropperDC.setMode(STOP_AND_RESET_ENCODER);
+                dropperDC.setMode(RUN_USING_ENCODER);
+            }
+
         }
     }
-}
