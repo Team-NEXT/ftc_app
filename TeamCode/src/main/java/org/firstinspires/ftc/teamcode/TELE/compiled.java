@@ -101,9 +101,9 @@ public class compiled extends LinearOpMode {
 //        cSpeed = 0.07;
 
 //        cExtPos = collectorDC.getCurrentPosition();
-        cOpen = 0.79;
-        cClose = 0;
-        cMid = 0.45;
+        cOpen = 0.92;
+        cClose = 0.12;
+        cMid = 0.6;
 
         //DROPPING
         dropperDC = hardwareMap.dcMotor.get("dropDC");
@@ -131,7 +131,7 @@ public class compiled extends LinearOpMode {
         while (opModeIsActive()) {
 
 //            gamepad1.setJoystickDeadzone(0.3f); //THIS WAS NEVER ON
-            
+
             /**DRIVING*/
             double r = Math.hypot(gamepad1.left_stick_x, gamepad1.left_stick_y);
             telemetry.addData("r = ", r);
@@ -215,6 +215,10 @@ public class compiled extends LinearOpMode {
                 collectorDC.setPower(0);
             }
 
+            if (gamepad2.right_stick_button) {
+//                COLLECTOREXTCLOSE(0.8);
+            }
+
             /**DROPPER*/
             if (!gamepad1.right_bumper && !gamepad1.left_bumper && !gamepad1.a && gamepad1.b) {
                 while (dropperServo.getPosition() > dUnload) {
@@ -252,23 +256,39 @@ public class compiled extends LinearOpMode {
     }
 
 //    void COLLECTOREXTCLOSE (double power) {
-//        sweeperDC.setPower(-0.7);
+//
+//        sweeperDC.setPower(1);
+//
 //        while (collectorServo.getPosition() > cMid) {
-//            dPos = dropperServo.getPosition();
-//            dPos -= cSpeed;
-//            dropperServo.setPosition(dPos);
+//            cPos = collectorServo.getPosition();
+//            cPos -= 0.07;
+//            collectorServo.setPosition(cPos);
 //        }
+//
 //        if (cPos < cMid) {
 //            cPos = cMid;
 //            collectorServo.setPosition(cPos);
 //        }
+//
 //        sweeperDC.setPower(0);
-//        if (!collectorExtLimit.isPressed()) {
-//            collectorDC.setPower(power);
+//
+//        while (!collectorExtLimit.isPressed()) {
+//            collectorDC.setPower(-power);
 //        }
-//        if (collectorExtLimit.isPressed()) {
-//            collectorDC.setPower(0);
+//
+//        collectorDC.setPower(0);
+//
+//        while (collectorServo.getPosition() > cClose) {
+//            cPos = collectorServo.getPosition();
+//            cPos -= 0.07;
+//            collectorServo.setPosition(cPos);
 //        }
+//
+//        if (cPos < cClose) {
+//            cPos = cClose;
+//            collectorServo.setPosition(cPos);
+//        }
+//
 //    }
 
 }

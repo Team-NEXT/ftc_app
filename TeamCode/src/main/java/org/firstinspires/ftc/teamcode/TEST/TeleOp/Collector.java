@@ -189,28 +189,27 @@ public class Collector extends LinearOpMode {
                 collectorDC.setPower(0);
             }
 
+            telemetry.addData("c:", collectorDC.getCurrentPosition());
+
         }
     }
 
 //    void COLLECTOREXTCLOSE (double power) {
-//        sweeperDC.setPower(-0.7);
+//        sweeperDC.setPower(1);
 //        while (collectorServo.getPosition() > cMid) {
-//            dPos = dropperServo.getPosition();
-//            dPos -= cSpeed;
-//            dropperServo.setPosition(dPos);
+//            cPos = collectorServo.getPosition();
+//            cPos -= cSpeed;
+//            collectorServo.setPosition(cPos);
 //        }
 //        if (cPos < cMid) {
 //            cPos = cMid;
 //            collectorServo.setPosition(cPos);
 //        }
 //        sweeperDC.setPower(0);
-//        if (!collectorExtLimit.isPressed()) {
+//        while (!collectorExtLimit.isPressed()) {
 //            collectorDC.setPower(power);
 //        }
-//        if (collectorExtLimit.isPressed()) {
-//            collectorDC.setPower(0);
-//        }
+//        collectorDC.setPower(0);
 //    }
-
 }
 //arm closed = 0.26

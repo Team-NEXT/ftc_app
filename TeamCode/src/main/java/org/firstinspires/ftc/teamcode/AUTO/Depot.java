@@ -140,9 +140,9 @@ public class Depot extends LinearOpMode{
 //        cSpeed = 0.07;
 
 //        cExtPos = collectorDC.getCurrentPosition();
-        cOpen = 0.79;
-        cClose = 0;
-        cMid = 0.45;
+        cOpen = 0.92;
+        cClose = 0.12;
+        cMid = 0.6;
 
         //DROPPING
         dropperDC = hardwareMap.dcMotor.get("dropDC");
