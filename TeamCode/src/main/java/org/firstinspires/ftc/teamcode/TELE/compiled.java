@@ -67,8 +67,8 @@ public class compiled extends LinearOpMode {
         motorFrontRight = hardwareMap.dcMotor.get("frontRight");
         motorBackRight = hardwareMap.dcMotor.get("backRight");
 
-        motorFrontRight.setDirection(REVERSE);
-        motorBackRight.setDirection(REVERSE);
+        motorFrontLeft.setDirection(REVERSE);
+        motorBackLeft.setDirection(REVERSE);
 
 //        motorFrontRight.setMode(STOP_AND_RESET_ENCODER);
 //        motorFrontLeft.setMode(STOP_AND_RESET_ENCODER);
@@ -142,7 +142,7 @@ public class compiled extends LinearOpMode {
                 telemetry.addData("r = ", r);
                 double robotAngle = Math.atan2(-gamepad1.left_stick_y, gamepad1.left_stick_x) - Math.PI / 4;
                 telemetry.addData("robotAngle = ", robotAngle);
-                double rightX = gamepad1.right_stick_x;
+                double rightX = -gamepad1.right_stick_x;
                 telemetry.addData("rightX = ", rightX);
                 final double v1 = r * Math.cos(robotAngle) + rightX;
                 telemetry.addData("front left power = ", motorFrontLeft.getPower());
@@ -291,7 +291,38 @@ public class compiled extends LinearOpMode {
             }
 
             if (gamepad2.right_stick_button) {
-                COLLECTOREXTCLOSE(0.8);
+//                COLLECTOREXTCLOSE(0.8);
+                sweeperDC.setPower(1);
+
+                while (collectorServo.getPosition() > cMid) {
+                    cPos = collectorServo.getPosition();
+                    cPos -= 0.07;
+                    collectorServo.setPosition(cPos);
+                }
+
+                if (cPos < cMid) {
+                    cPos = cMid;
+                    collectorServo.setPosition(cPos);
+                }
+
+                sweeperDC.setPower(0);
+
+                while (collectorDC.getCurrentPosition()>20) {
+                    collectorDC.setPower(-0.8);
+                }
+
+                collectorDC.setPower(0);
+
+                while (collectorServo.getPosition() >= cClose) {
+                    cPos = collectorServo.getPosition();
+                    cPos -= 0.07;
+                    collectorServo.setPosition(cPos);
+                }
+
+                if (cPos < cClose) {
+                    cPos = cClose;
+                    collectorServo.setPosition(cPos);
+                }
             }
 
             /**DROPPER*/
@@ -324,7 +355,21 @@ public class compiled extends LinearOpMode {
             }
 
             if (gamepad1. right_stick_button) {
-                DROPPERREXTCLOSE(0.4);
+//                DROPPERREXTCLOSE(0.4);
+                while (dropperServo.getPosition() > dLoad) {
+                    dPos = dropperServo.getPosition();
+                    dPos += 0.09;
+                    collectorServo.setPosition(dPos);
+                }
+                if (dPos < dLoad) {
+                    dPos = dLoad;
+                    dropperServo.setPosition(dPos);
+                }
+
+                while (!dropperExtLimit.isPressed()) {
+                    dropperDC.setPower(-0.4);
+                }
+                dropperDC.setPower(0);
             }
 
 //            if (dropperDC.getCurrentPosition() < 1900) {
@@ -371,7 +416,7 @@ public class compiled extends LinearOpMode {
 
         sweeperDC.setPower(0);
 
-        while (collectorDC.getCurrentPosition()>20) {
+        while (!collectorExtLimit.isPressed()) {
             collectorDC.setPower(-power);
         }
 

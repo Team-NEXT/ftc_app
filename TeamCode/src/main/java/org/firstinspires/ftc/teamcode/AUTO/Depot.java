@@ -142,15 +142,15 @@ public class Depot extends LinearOpMode{
 //        cExtPos = collectorDC.getCurrentPosition();
         cOpen = 0.92;
         cClose = 0.12;
-        cMid = 0.6;
+        cMid = 0.8;
 
         //DROPPING
         dropperDC = hardwareMap.dcMotor.get("dropDC");
         dropperServo = hardwareMap.servo.get("dServo");
         dropperExtLimit = hardwareMap.get(ModernRoboticsTouchSensor.class, "dropper");
 
-        dLoad = 0.66;
-        dUnload = 0.29;
+        dLoad = 0.64;
+        dUnload = 0.3;
 
         //DRIVE ENCODERS
         xServo = hardwareMap.servo.get("xServo");
@@ -158,37 +158,37 @@ public class Depot extends LinearOpMode{
 
         xUp = 0.12;
         yUp = 0.38;
-        xDown = 0.72;
-        yDown = 0.08;
+        xDown = 0.73;
+        yDown = 0.07;
 
 
         //INITIALIZATION
         dropperServo.setPosition(dLoad);
         collectorServo.setPosition(cClose);
-        xServo.setPosition(xDown);
-        yServo.setPosition(yDown);
+        xServo.setPosition(xUp);
+        yServo.setPosition(yUp);
 
         /**DetectorINIT*/
-//        telemetry.addData("Status", "DogeCV 2018.0 - Gold Align Example");
-//
-//        // Set up detector
-//        detector = new GoldAlignDetector(); // Create detector
-//        detector.init(hardwareMap.appContext, CameraViewDisplay.getInstance()); // Initialize it with the app context and camera
-//        detector.useDefaults(); // Set detector to use default settings
-//
-//        // Optional tuning
-//        detector.alignSize = 100; // How wide (in pixels) is the range in which the gold object will be aligned. (Represented by green bars in the preview)
-//        detector.alignPosOffset = 0; // How far from center frame to offset this alignment zone.
-//        detector.downscale = 0.4; // How much to downscale the input frames
-//
-//        detector.areaScoringMethod = DogeCV.AreaScoringMethod.MAX_AREA; // Can also be PERFECT_AREA
-//        detector.perfectAreaScorer.perfectArea = 10000; // if using PERFECT_AREA scoring
-//        detector.maxAreaScorer.weight = 0.005; //
-//
-//        detector.ratioScorer.weight = 5; //
-//        detector.ratioScorer.perfectRatio = 1.0; // Ratio adjustment
-//
-//        detector.enable(); // Start the detector!
+        telemetry.addData("Status", "DogeCV 2018.0 - Gold Align Example");
+
+        // Set up detector
+        detector = new GoldAlignDetector(); // Create detector
+        detector.init(hardwareMap.appContext, CameraViewDisplay.getInstance()); // Initialize it with the app context and camera
+        detector.useDefaults(); // Set detector to use default settings
+
+        // Optional tuning
+        detector.alignSize = 100; // How wide (in pixels) is the range in which the gold object will be aligned. (Represented by green bars in the preview)
+        detector.alignPosOffset = 0; // How far from center frame to offset this alignment zone.
+        detector.downscale = 0.4; // How much to downscale the input frames
+
+        detector.areaScoringMethod = DogeCV.AreaScoringMethod.MAX_AREA; // Can also be PERFECT_AREA
+        detector.perfectAreaScorer.perfectArea = 10000; // if using PERFECT_AREA scoring
+        detector.maxAreaScorer.weight = 0.005; //
+
+        detector.ratioScorer.weight = 5; //
+        detector.ratioScorer.perfectRatio = 1.0; // Ratio adjustment
+
+        detector.enable(); // Start the detector!
 
         mineralPos = 2;
 
@@ -199,52 +199,70 @@ public class Depot extends LinearOpMode{
 
         //LATCHING(1);
 
+        yServo.setPosition(yDown);
+        xServo.setPosition(xDown);
+
         BACKWARD(50, 0.2);
 
         //CODE FOR IMAGE RECOGNITION
 
         if (mineralPos == 1) {
 
-            SWAYRIGHT(300); //distance = 90
 
-            FORWARD(500, 0.5);
-
-            SWAYRIGHT(140);
-
-            SWAYLEFT(160);
-
-            FORWARD(280, 0.5);
 
         }
 
         if (mineralPos == 2) {
 
-            SWAYRIGHT(600); //distance = 90
+            SWAYRIGHT(250); //distance = 90
 
             Thread.sleep(200);
 
-            D2_SWAYLEFT(300);
+            AXISRIGHT(0.3, 90);
 
             Thread.sleep(100);
 
-            FORWARD(50, 0.2);
+            FORWARD(500, 0.6);
 
-            AXISRIGHT(0.4, 90);
+            CSERVODOWN(0.02);
 
-            FORWARD(450, 0.55);
-
-            Thread.sleep(100);
-
-            BACKWARD(600, 0.4);
+            SWEEPER(-1);
+            Thread.sleep(2000);
+            SWEEPER(0);
 
             Thread.sleep(100);
 
-            AXISLEFT(88, 0.4);
+            CSERVOUP(0.6);
 
             Thread.sleep(100);
 
-            FORWARD(1200, 0.6);
+            BACKWARD(450, 0.4);
+            BACKWARD(100, 0.2);
 
+
+//            Thread.sleep(100);
+//
+            AXISLEFT(92, 0.4);
+//
+//            Thread.sleep(100);
+//
+            FORWARD(680, 0.4);
+//
+//            Thread.sleep(100);
+
+            AXISLEFT(15, 0.4);
+//
+//            Thread.sleep(100);
+//
+//            COLLECTOREXPAND(1000, 0.8);
+
+            FORWARD(250, 0.5);
+
+            CSERVODOWN(0.02);
+
+            telemetry.addData("", collectorDC.getCurrentPosition());
+            telemetry.update();
+            Thread.sleep(3000);
 
         }
 
@@ -430,9 +448,9 @@ public class Depot extends LinearOpMode{
 
         while ((targetTicks-100) > Math.abs(sweeperDC.getCurrentPosition())) {
             motorFrontRight.setPower(0.5);
-            motorBackRight.setPower(-0.6);
-            motorFrontLeft.setPower(-0.5);
-            motorBackLeft.setPower(0.8);
+            motorBackRight.setPower(-0.4);
+            motorFrontLeft.setPower(-0.7);
+            motorBackLeft.setPower(0.9);
 
             telemetry.addData("FR", motorFrontRight.getPower());
             telemetry.addData("BR", motorBackRight.getPower());
@@ -562,9 +580,9 @@ public class Depot extends LinearOpMode{
         collectorDC.setMode(STOP_AND_RESET_ENCODER);
         collectorDC.setMode(RUN_USING_ENCODER);
 
-        while ((limit - 10) < Math.abs(collectorDC.getCurrentPosition())) {
+        do {
             collectorDC.setPower(power);
-        }
+        } while (Math.abs(collectorDC.getCurrentPosition()) < limit);
 
         collectorDC.setPower(0);
 
