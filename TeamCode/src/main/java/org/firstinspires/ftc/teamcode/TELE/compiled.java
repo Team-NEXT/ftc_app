@@ -400,43 +400,33 @@ public class compiled extends LinearOpMode {
     }
 
     void COLLECTOREXTCLOSE (double power) {
-
         sweeperDC.setPower(1);
-
         while (collectorServo.getPosition() > cMid) {
             cPos = collectorServo.getPosition();
             cPos -= 0.07;
             collectorServo.setPosition(cPos);
         }
-
         if (cPos < cMid) {
             cPos = cMid;
             collectorServo.setPosition(cPos);
         }
-
         sweeperDC.setPower(0);
-
         while (!collectorExtLimit.isPressed()) {
             collectorDC.setPower(-power);
         }
-
         collectorDC.setPower(0);
-
         while (collectorServo.getPosition() >= cClose) {
             cPos = collectorServo.getPosition();
             cPos -= 0.07;
             collectorServo.setPosition(cPos);
         }
-
         if (cPos < cClose) {
             cPos = cClose;
             collectorServo.setPosition(cPos);
         }
-
     }
 
     void DROPPERREXTCLOSE (double power) {
-
         while (dropperServo.getPosition() > dLoad) {
             dPos = dropperServo.getPosition();
             dPos += 0.09;
@@ -446,13 +436,10 @@ public class compiled extends LinearOpMode {
             dPos = dLoad;
             dropperServo.setPosition(dPos);
         }
-
         while (!dropperExtLimit.isPressed()) {
             dropperDC.setPower(-power);
         }
         dropperDC.setPower(0);
-
     }
-
 }
 //arm closed = 0.26

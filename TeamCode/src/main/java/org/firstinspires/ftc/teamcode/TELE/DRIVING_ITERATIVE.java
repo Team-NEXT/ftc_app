@@ -55,19 +55,12 @@ public class DRIVING_ITERATIVE extends OpMode {
 
         //GamePad 1
         double r = Math.hypot(gamepad1.left_stick_x, gamepad1.left_stick_y);
-        telemetry.addData("r = ", r);
         double robotAngle = Math.atan2(-gamepad1.left_stick_y, gamepad1.left_stick_x) - Math.PI / 4;
-        telemetry.addData("robotAngle = ", robotAngle);
         double rightX = gamepad1.right_stick_x;
-        //telemetry.addData("rightX = ", rightX);
         final double v1 = r * Math.cos(robotAngle) + rightX;
-        //telemetry.addData("front left power = ", v1);
         final double v2 = r * Math.sin(robotAngle) - rightX;
-        //telemetry.addData("front right power = ", v2);
         final double v3 = r * Math.sin(robotAngle) + rightX;
-        //telemetry.addData("back left power = ", v3);
         final double v4 = r * Math.cos(robotAngle) - rightX;
-        //telemetry.addData("back right power = ", v4);
 
         motorFrontLeft.setPower(v1);
         motorFrontRight.setPower(v2);

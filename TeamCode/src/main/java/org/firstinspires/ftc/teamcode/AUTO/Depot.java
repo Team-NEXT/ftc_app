@@ -190,25 +190,75 @@ public class Depot extends LinearOpMode{
 
         detector.enable(); // Start the detector!
 
-        mineralPos = 2;
+//        mineralPos = 1;
 
         /**START*/
         waitForStart();
 
         /*CODE AFTER STARTING*/
 
-        //LATCHING(1);
+        LATCHING(1);
 
         yServo.setPosition(yDown);
         xServo.setPosition(xDown);
 
         BACKWARD(50, 0.2);
 
-        //CODE FOR IMAGE RECOGNITION
+        Thread.sleep(100);
+
+        /**CODE FOR IMAGE RECOGNITION*/
+
+        //getaligned&isfound
+
+        if (detector.isFound()) {
+            if (detector.getAligned()) {
+                mineralPos = 2;
+                telemetry.addData("found and aligned", mineralPos);
+                telemetry.addData("mineralPos: " , mineralPos);
+                telemetry.update();
+            }
+            else {
+                mineralPos = 3;
+                telemetry.addData("found", mineralPos);
+                telemetry.addData("mineralPos: " , mineralPos);
+                telemetry.update();
+            }
+        }
+        else {
+            mineralPos = 1;
+            telemetry.addData("none", mineralPos);
+            telemetry.addData("mineralPos: " , mineralPos);
+            telemetry.update();
+        }
+
+        Thread.sleep(100);
 
         if (mineralPos == 1) {
 
+            SWAYRIGHT(300);
 
+            FORWARD(400, 0.4);
+
+            AXISRIGHT(0.4, 112);
+
+            FORWARD(600, 0.5);
+
+            CSERVODOWN(0.02);
+
+            SWEEPER(-1);
+            Thread.sleep(2000);
+            SWEEPER(0);
+
+            Thread.sleep(100);
+
+            CSERVOUP(0.6);
+
+            Thread.sleep(100);
+
+            AXISRIGHT(0.4, 15);
+
+            BACKWARD(800, 0.5);
+            BACKWARD(300, 0.3);
 
         }
 
@@ -268,16 +318,39 @@ public class Depot extends LinearOpMode{
 
         if (mineralPos == 3) {
 
-            SWAYRIGHT(300); //distance = 90
+            SWAYRIGHT(300);
 
-//            COASTBACKWARD(260, 0.7);
-            BACKWARD(240, 0.4);
+            BACKWARD(400, 0.4);
 
-            SWAYRIGHT(130);
+            AXISRIGHT(0.4, 55);
 
-            SWAYLEFT(160);
+            FORWARD(550, 0.5);
 
-            FORWARD(1100, 0.6);
+            CSERVODOWN(0.02);
+
+            SWEEPER(-1);
+            Thread.sleep(2000);
+            SWEEPER(0);
+
+            Thread.sleep(100);
+
+            CSERVOUP(0.6);
+
+            Thread.sleep(100);
+
+            BACKWARD(400, 0.5);
+            BACKWARD(100, 0.3);
+
+            AXISLEFT(86, 0.4);
+
+            FORWARD(1100, 0.5);
+
+            AXISLEFT(12, 0.4);
+
+            FORWARD(210, 0.5);
+
+            CSERVODOWN(0.02);
+
         }
 
 //        Thread.sleep(100);
