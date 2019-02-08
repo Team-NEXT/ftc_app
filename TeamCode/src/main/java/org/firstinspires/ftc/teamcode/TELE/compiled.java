@@ -58,6 +58,8 @@ public class compiled extends LinearOpMode {
     private double xUp;
     private double yUp;
 
+    private double startTime;
+
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -242,7 +244,8 @@ public class compiled extends LinearOpMode {
 
             /**COLLECTOR*/
             if (gamepad2.y && !gamepad2.x && !gamepad2.b) {
-                while (collectorServo.getPosition() < cOpen && !gamepad2.b) {
+                startTime = System.currentTimeMillis();
+                while ((collectorServo.getPosition() < cOpen && !gamepad2.b) || ((System.currentTimeMillis() - startTime) < 1200)) {
                     cPos = collectorServo.getPosition();
                     cPos += 0.05;
                     collectorServo.setPosition(cPos);
@@ -254,7 +257,8 @@ public class compiled extends LinearOpMode {
             }
             if (!collectorServoLimit.isPressed()) {
                 if (!gamepad2.y && gamepad2.x && !gamepad2.b) {
-                    while (collectorServo.getPosition() > cClose && !gamepad2.b) {
+                    startTime = System.currentTimeMillis();
+                    while ((collectorServo.getPosition() > cClose && !gamepad2.b) || ((System.currentTimeMillis() - startTime) < 1200)) {
                         cPos = collectorServo.getPosition();
                         cPos -= 0.07;
                         collectorServo.setPosition(cPos);
@@ -291,38 +295,38 @@ public class compiled extends LinearOpMode {
             }
 
             if (gamepad2.right_stick_button) {
-//                COLLECTOREXTCLOSE(0.8);
-                sweeperDC.setPower(1);
-
-                while (collectorServo.getPosition() > cMid) {
-                    cPos = collectorServo.getPosition();
-                    cPos -= 0.07;
-                    collectorServo.setPosition(cPos);
-                }
-
-                if (cPos < cMid) {
-                    cPos = cMid;
-                    collectorServo.setPosition(cPos);
-                }
-
-                sweeperDC.setPower(0);
-
-                while (collectorDC.getCurrentPosition()>20) {
-                    collectorDC.setPower(-0.8);
-                }
-
-                collectorDC.setPower(0);
-
-                while (collectorServo.getPosition() >= cClose) {
-                    cPos = collectorServo.getPosition();
-                    cPos -= 0.07;
-                    collectorServo.setPosition(cPos);
-                }
-
-                if (cPos < cClose) {
-                    cPos = cClose;
-                    collectorServo.setPosition(cPos);
-                }
+                COLLECTOREXTCLOSE(0.8);
+//                sweeperDC.setPower(1);
+//
+//                while (collectorServo.getPosition() > cMid) {
+//                    cPos = collectorServo.getPosition();
+//                    cPos -= 0.07;
+//                    collectorServo.setPosition(cPos);
+//                }
+//
+//                if (cPos < cMid) {
+//                    cPos = cMid;
+//                    collectorServo.setPosition(cPos);
+//                }
+//
+//                sweeperDC.setPower(0);
+//
+//                while (collectorDC.getCurrentPosition()>20) {
+//                    collectorDC.setPower(-0.8);
+//                }
+//
+//                collectorDC.setPower(0);
+//
+//                while (collectorServo.getPosition() >= cClose) {
+//                    cPos = collectorServo.getPosition();
+//                    cPos -= 0.07;
+//                    collectorServo.setPosition(cPos);
+//                }
+//
+//                if (cPos < cClose) {
+//                    cPos = cClose;
+//                    collectorServo.setPosition(cPos);
+//                }
             }
 
             /**DROPPER*/
@@ -332,7 +336,8 @@ public class compiled extends LinearOpMode {
             }
 
             if (!gamepad1.right_bumper && !gamepad1.left_bumper && !gamepad1.a && gamepad1.b) {
-                while (dropperServo.getPosition() > dUnload) {
+                startTime = System.currentTimeMillis();
+                while ((dropperServo.getPosition() > dUnload) || ((System.currentTimeMillis() - startTime) < 1200)) {
                     dPos = dropperServo.getPosition();
                     dPos -= 0.09;
                     dropperServo.setPosition(dPos);
@@ -343,7 +348,8 @@ public class compiled extends LinearOpMode {
                 }
             }
             if (!gamepad1.b && gamepad1.a) {
-                while (dropperServo.getPosition() < dLoad) {
+                startTime = System.currentTimeMillis();
+                while ((dropperServo.getPosition() < dLoad) || ((System.currentTimeMillis() - startTime) < 1200)) {
                     dPos = dropperServo.getPosition();
                     dPos += 0.09;
                     dropperServo.setPosition(dPos);
@@ -355,21 +361,21 @@ public class compiled extends LinearOpMode {
             }
 
             if (gamepad1. right_stick_button) {
-//                DROPPERREXTCLOSE(0.4);
-                while (dropperServo.getPosition() > dLoad) {
-                    dPos = dropperServo.getPosition();
-                    dPos += 0.09;
-                    collectorServo.setPosition(dPos);
-                }
-                if (dPos < dLoad) {
-                    dPos = dLoad;
-                    dropperServo.setPosition(dPos);
-                }
-
-                while (!dropperExtLimit.isPressed()) {
-                    dropperDC.setPower(-0.4);
-                }
-                dropperDC.setPower(0);
+                DROPPERREXTCLOSE(0.4);
+//                while (dropperServo.getPosition() > dLoad) {
+//                    dPos = dropperServo.getPosition();
+//                    dPos += 0.09;
+//                    collectorServo.setPosition(dPos);
+//                }
+//                if (dPos < dLoad) {
+//                    dPos = dLoad;
+//                    dropperServo.setPosition(dPos);
+//                }
+//
+//                while (!dropperExtLimit.isPressed()) {
+//                    dropperDC.setPower(-0.4);
+//                }
+//                dropperDC.setPower(0);
             }
 
 //            if (dropperDC.getCurrentPosition() < 1900) {
@@ -401,7 +407,8 @@ public class compiled extends LinearOpMode {
 
     void COLLECTOREXTCLOSE (double power) {
         sweeperDC.setPower(1);
-        while (collectorServo.getPosition() > cMid) {
+        startTime = System.currentTimeMillis();
+        while (collectorServo.getPosition() > cMid  || ((System.currentTimeMillis() - startTime) < 1200)) {
             cPos = collectorServo.getPosition();
             cPos -= 0.07;
             collectorServo.setPosition(cPos);
@@ -411,11 +418,13 @@ public class compiled extends LinearOpMode {
             collectorServo.setPosition(cPos);
         }
         sweeperDC.setPower(0);
-        while (!collectorExtLimit.isPressed()) {
+        startTime = System.currentTimeMillis();
+        while (!collectorExtLimit.isPressed() || ((System.currentTimeMillis() - startTime) < 1800)) {
             collectorDC.setPower(-power);
         }
         collectorDC.setPower(0);
-        while (collectorServo.getPosition() >= cClose) {
+        startTime = System.currentTimeMillis();
+        while (collectorServo.getPosition() >= cClose  || ((System.currentTimeMillis() - startTime) < 1200)) {
             cPos = collectorServo.getPosition();
             cPos -= 0.07;
             collectorServo.setPosition(cPos);
@@ -427,7 +436,8 @@ public class compiled extends LinearOpMode {
     }
 
     void DROPPERREXTCLOSE (double power) {
-        while (dropperServo.getPosition() > dLoad) {
+        startTime = System.currentTimeMillis();
+        while (dropperServo.getPosition() > dLoad || ((System.currentTimeMillis() - startTime) < 1200)) {
             dPos = dropperServo.getPosition();
             dPos += 0.09;
             collectorServo.setPosition(dPos);
@@ -436,7 +446,8 @@ public class compiled extends LinearOpMode {
             dPos = dLoad;
             dropperServo.setPosition(dPos);
         }
-        while (!dropperExtLimit.isPressed()) {
+        startTime = System.currentTimeMillis();
+        while (!dropperExtLimit.isPressed() || ((System.currentTimeMillis() - startTime) < 1800)) {
             dropperDC.setPower(-power);
         }
         dropperDC.setPower(0);
