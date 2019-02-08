@@ -4,12 +4,19 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import javax.xml.xpath.XPath;
+
 @TeleOp(name = "SERVO TEST : encoders", group = "test")
 
 public class encoderServoTest extends LinearOpMode{
 
     private static Servo xServo;
     private static Servo yServo;
+
+    private static final double xUp = 0.21;
+    private static final double xDown = 0.85;
+    private static final double yUp = 0.38;
+    private static final double yDown = 0.15;
 
     private static double xPos = 0;
     private static double yPos = 0;
@@ -19,6 +26,9 @@ public class encoderServoTest extends LinearOpMode{
 
         xServo = hardwareMap.servo.get("xServo");
         yServo = hardwareMap.servo.get("yServo");
+
+        xServo.setPosition(xUp);
+        yServo.setPosition(yUp);
 
         xPos = 0;
         yPos = 0;
@@ -57,6 +67,22 @@ public class encoderServoTest extends LinearOpMode{
 //                    yPos -= 0.01;
 //                }
                 yPos -= 0.01;
+            }
+
+            if (gamepad1.right_bumper) {
+                xPos = xUp;
+            }
+
+            if (gamepad1.right_trigger > 0.1) {
+                xPos = xDown;
+            }
+
+            if (gamepad1.left_bumper) {
+                yPos = yUp;
+            }
+
+            if (gamepad1.left_trigger > 0.1) {
+                yPos = yDown;
             }
 
             xServo.setPosition(xPos);

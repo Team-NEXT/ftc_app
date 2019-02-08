@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.AUTO;
+package org.firstinspires.ftc.teamcode.TEST.AUTO;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsTouchSensor;
@@ -24,9 +24,9 @@ import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 
-@Autonomous(name = "Depot", group = "auto")
+@Autonomous(name = "Depot_C", group = "test")
 
-public class Depot extends LinearOpMode{
+public class Depot_C extends LinearOpMode{
 
     private GoldAlignDetector detector;
 
@@ -156,10 +156,10 @@ public class Depot extends LinearOpMode{
         xServo = hardwareMap.servo.get("xServo");
         yServo = hardwareMap.servo.get("yServo");
 
-        xUp = 0.21;//0.12//0.15
+        xUp = 0.12;
         yUp = 0.38;
-        xDown = 0.85;
-        yDown = 0.07;//0.15//0.07
+        xDown = 0.73;
+        yDown = 0.07;
 
 
         //INITIALIZATION
@@ -177,7 +177,7 @@ public class Depot extends LinearOpMode{
         detector.useDefaults(); // Set detector to use default settings
 
         // Optional tuning
-        detector.alignSize = 200; // How wide (in pixels) is the range in which the gold object will be aligned. (Represented by green bars in the preview)
+        detector.alignSize = 100; // How wide (in pixels) is the range in which the gold object will be aligned. (Represented by green bars in the preview)
         detector.alignPosOffset = 0; // How far from center frame to offset this alignment zone.
         detector.downscale = 0.4; // How much to downscale the input frames
 
@@ -201,6 +201,8 @@ public class Depot extends LinearOpMode{
 
         yServo.setPosition(yDown);
         xServo.setPosition(xDown);
+
+        BACKWARD(50, 0.2);
 
         Thread.sleep(100);
 
@@ -229,8 +231,6 @@ public class Depot extends LinearOpMode{
             telemetry.update();
         }
 
-        BACKWARD(50, 0.2);
-
         Thread.sleep(100);
 
         if (mineralPos == 1) {
@@ -256,17 +256,9 @@ public class Depot extends LinearOpMode{
             Thread.sleep(100);
 
             AXISRIGHT(0.4, 15);
-
-            BACKWARD(800, 0.5);
-            BACKWARD(300, 0.3);
-
-            dropperDC.setMode(STOP_AND_RESET_ENCODER);
-            dropperDC.setMode(RUN_USING_ENCODER);
-
-            while (Math.abs(dropperDC.getCurrentPosition()) < 1000) {
-                dropperDC.setPower(1);
-            }
-            dropperDC.setPower(0);
+//
+//            BACKWARD(800, 0.5);
+//            BACKWARD(300, 0.3);
 
         }
 
@@ -291,40 +283,36 @@ public class Depot extends LinearOpMode{
             Thread.sleep(100);
 
             CSERVOUP(0.6);
-
-            Thread.sleep(100);
-
-            BACKWARD(450, 0.4);
-            BACKWARD(100, 0.2);
-
-
-//            Thread.sleep(100);
-//
-            AXISLEFT(92, 0.4);
 //
 //            Thread.sleep(100);
 //
-            FORWARD(680, 0.4);
+//            BACKWARD(450, 0.4);
+//            BACKWARD(100, 0.2);
 //
-//            Thread.sleep(100);
-
-            AXISLEFT(15, 0.4);
 //
-//            Thread.sleep(100);
+////            Thread.sleep(100);
+////
+//            AXISLEFT(92, 0.4);
+////
+////            Thread.sleep(100);
+////
+//            FORWARD(680, 0.4);
+////
+////            Thread.sleep(100);
 //
-//            COLLECTOREXPAND(1000, 0.8);
-
-            FORWARD(250, 0.5);
-
-            CSERVODOWN(0.02);
-
-            dropperDC.setMode(STOP_AND_RESET_ENCODER);
-            dropperDC.setMode(RUN_USING_ENCODER);
-
-            while (Math.abs(dropperDC.getCurrentPosition()) < 1000) {
-                dropperDC.setPower(1);
-            }
-            dropperDC.setPower(0);
+//            AXISLEFT(15, 0.4);
+////
+////            Thread.sleep(100);
+////
+////            COLLECTOREXPAND(1000, 0.8);
+//
+//            FORWARD(250, 0.5);
+//
+//            CSERVODOWN(0.02);
+//
+//            telemetry.addData("", collectorDC.getCurrentPosition());
+//            telemetry.update();
+//            Thread.sleep(3000);
 
         }
 
@@ -348,26 +336,20 @@ public class Depot extends LinearOpMode{
 
             CSERVOUP(0.6);
 
-            Thread.sleep(100);
-
-            BACKWARD(400, 0.5);
-            BACKWARD(100, 0.3);
-
-            AXISLEFT(90, 0.4);
-
-            FORWARD(1100, 0.5);
-
-            AXISLEFT(12, 0.4);
-
-            FORWARD(210, 0.5);
-
-            dropperDC.setMode(STOP_AND_RESET_ENCODER);
-            dropperDC.setMode(RUN_USING_ENCODER);
-
-            while (Math.abs(dropperDC.getCurrentPosition()) < 1000) {
-                dropperDC.setPower(1);
-            }
-            dropperDC.setPower(0);
+//            Thread.sleep(100);
+//
+//            BACKWARD(400, 0.5);
+//            BACKWARD(100, 0.3);
+//
+//            AXISLEFT(86, 0.4);
+//
+//            FORWARD(1100, 0.5);
+//
+//            AXISLEFT(12, 0.4);
+//
+//            FORWARD(210, 0.5);
+//
+//            CSERVODOWN(0.02);
 
         }
 

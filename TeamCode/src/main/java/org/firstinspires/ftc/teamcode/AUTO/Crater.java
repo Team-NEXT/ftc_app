@@ -154,17 +154,17 @@ public class Crater extends LinearOpMode{
         xServo = hardwareMap.servo.get("xServo");
         yServo = hardwareMap.servo.get("yServo");
 
-        xUp = 0.12;
+        xUp = 0.21;//0.15
         yUp = 0.38;
-        xDown = 0.72;
-        yDown = 0.08;
+        xDown = 0.85;
+        yDown = 0.15;
 
 
         //INITIALIZATION
         dropperServo.setPosition(dLoad);
         collectorServo.setPosition(cClose);
-        xServo.setPosition(xDown);
-        yServo.setPosition(yDown);
+        xServo.setPosition(xUp);
+        yServo.setPosition(xUp);
 
         /**DetectorINIT*/
         telemetry.addData("Status", "DogeCV 2018.0 - Gold Align Example");
@@ -175,7 +175,7 @@ public class Crater extends LinearOpMode{
         detector.useDefaults(); // Set detector to use default settings
 
         // Optional tuning
-        detector.alignSize = 100; // How wide (in pixels) is the range in which the gold object will be aligned. (Represented by green bars in the preview)
+        detector.alignSize = 150; // How wide (in pixels) is the range in which the gold object will be aligned. (Represented by green bars in the preview)
         detector.alignPosOffset = 0; // How far from center frame to offset this alignment zone.
         detector.downscale = 0.4; // How much to downscale the input frames
 
@@ -199,8 +199,6 @@ public class Crater extends LinearOpMode{
 
         yServo.setPosition(yDown);
         xServo.setPosition(xDown);
-
-        BACKWARD(50, 0.2);
 
         Thread.sleep(100);
 
@@ -231,6 +229,9 @@ public class Crater extends LinearOpMode{
 
         Thread.sleep(100);
 
+
+        BACKWARD(50, 0.2);
+
         if (mineralPos == 1) {
 
             SWAYRIGHT(300); //distance = 90
@@ -241,22 +242,93 @@ public class Crater extends LinearOpMode{
 
             SWAYLEFT(160);
 
-            FORWARD(280, 0.5);
+            FORWARD(300, 0.5);
 
+            Thread.sleep(100);
+
+            AXISLEFT(45, 0.4);
+
+            Thread.sleep(100);
+
+            FORWARD(150, 0.5);
+
+            Thread.sleep(100);
+
+//        COLLECTOREXPAND(1000, 0.8);
+
+            FORWARD(400,0.5);
+
+            CSERVODOWN(0.02);
+//
+            SWEEPER(-1);
+            Thread.sleep(2000);
+            SWEEPER(0);
+//
+            CSERVOUP(0.07);
+
+//        collectorDC.setPower(-0.2);
+
+            BACKWARD(1200, 0.6);
+
+            dropperDC.setMode(STOP_AND_RESET_ENCODER);
+            dropperDC.setMode(RUN_USING_ENCODER);
+
+            while (Math.abs(dropperDC.getCurrentPosition()) < 1000) {
+                dropperDC.setPower(1);
+            }
+            dropperDC.setPower(0);
         }
 
         if (mineralPos == 2) {
 
             SWAYRIGHT(300); //distance = 90
 
+            FORWARD(50, 0.5);
+
             SWAYRIGHT(105);
 
             Thread.sleep(100);
 
-            C2_SWAYLEFT(160);
+//            C2_SWAYLEFT(160);
+            SWAYLEFT(120); //was 160
 
-            FORWARD(850, 0.55);
+            FORWARD(840, 0.6);
 
+            Thread.sleep(100);
+
+            AXISLEFT(45, 0.4);
+
+            Thread.sleep(100);
+
+            FORWARD(150, 0.5);
+
+            Thread.sleep(100);
+
+//        COLLECTOREXPAND(1000, 0.8);
+
+            FORWARD(400,0.5);
+
+            CSERVODOWN(0.02);
+//
+            SWEEPER(-1);
+            Thread.sleep(2000);
+            SWEEPER(0);
+//
+            CSERVOUP(0.07);
+
+//        collectorDC.setPower(-0.2);7
+
+            BACKWARD(800, 0.6);
+            AXISLEFT(8, 0.4);
+            BACKWARD(400, 0.5);
+
+            dropperDC.setMode(STOP_AND_RESET_ENCODER);
+            dropperDC.setMode(RUN_USING_ENCODER);
+
+            while (Math.abs(dropperDC.getCurrentPosition()) < 1000) {
+                dropperDC.setPower(1);
+            }
+            dropperDC.setPower(0);
         }
 
         if (mineralPos == 3) {
@@ -264,38 +336,50 @@ public class Crater extends LinearOpMode{
             SWAYRIGHT(300); //distance = 90
 
 //            COASTBACKWARD(260, 0.7);
-            BACKWARD(240, 0.4);
+            BACKWARD(200, 0.4);
 
             SWAYRIGHT(130);
 
             SWAYLEFT(160);
 
-            FORWARD(1100, 0.6);
-        }
+            FORWARD(800, 0.6);
+            FORWARD(400, 0.4);
 
-        Thread.sleep(100);
+            Thread.sleep(100);
 
-        AXISLEFT(46, 0.4);
+            AXISLEFT(45, 0.4);
 
-        Thread.sleep(100);
+            Thread.sleep(100);
 
-        FORWARD(150, 0.5);
+            FORWARD(150, 0.5);
 
-        Thread.sleep(100);
+            Thread.sleep(100);
 
 //        COLLECTOREXPAND(1000, 0.8);
 
-//        CSERVODOWN(0.02);
+            FORWARD(400,0.5);
 
-//        SWEEPER(1);
-//        Thread.sleep(2000);
-//        SWEEPER(0);
-
-//        CSERVOUP(0.07);
+            CSERVODOWN(0.02);
+//
+            SWEEPER(-1);
+            Thread.sleep(2000);
+            SWEEPER(0);
+//
+            CSERVOUP(0.07);
 
 //        collectorDC.setPower(-0.2);
 
-        BACKWARD(800, 0.6);
+            BACKWARD(1200, 0.6);
+
+            dropperDC.setMode(STOP_AND_RESET_ENCODER);
+            dropperDC.setMode(RUN_USING_ENCODER);
+
+            while (Math.abs(dropperDC.getCurrentPosition()) < 1000) {
+                dropperDC.setPower(1);
+            }
+            dropperDC.setPower(0);
+        }
+
 
 //        COLLECTORCONTRACT(0.8);
 
@@ -412,9 +496,9 @@ public class Crater extends LinearOpMode{
         sweeperDC.setMode(RUN_USING_ENCODER);
 
         while ((targetTicks-100) > Math.abs(sweeperDC.getCurrentPosition())) {
-            motorFrontRight.setPower(0.6);
+            motorFrontRight.setPower(0.5);
             motorBackRight.setPower(-0.4);
-            motorFrontLeft.setPower(-0.7);
+            motorFrontLeft.setPower(-0.6);
             motorBackLeft.setPower(0.8);
 
             telemetry.addData("FR", motorFrontRight.getPower());
