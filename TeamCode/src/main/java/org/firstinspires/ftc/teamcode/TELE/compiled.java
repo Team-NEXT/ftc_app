@@ -177,31 +177,31 @@ public class compiled extends LinearOpMode {
                 }
 
                 if (gamepad1.dpad_up && !gamepad1.dpad_down && !gamepad1.dpad_left && !gamepad1.dpad_right) {
-                    motorFrontRight.setPower(0.1);
-                    motorFrontLeft.setPower(0.1);
-                    motorBackLeft.setPower(0.1);
-                    motorBackRight.setPower(0.1);
+                    motorFrontRight.setPower(0.2);
+                    motorFrontLeft.setPower(0.2);
+                    motorBackLeft.setPower(0.2);
+                    motorBackRight.setPower(0.2);
                 }
 
                 if (!gamepad1.dpad_up && gamepad1.dpad_down && !gamepad1.dpad_left && !gamepad1.dpad_right) {
-                    motorFrontRight.setPower(-0.1);
-                    motorFrontLeft.setPower(-0.1);
-                    motorBackLeft.setPower(-0.1);
-                    motorBackRight.setPower(-0.1);
+                    motorFrontRight.setPower(-0.2);
+                    motorFrontLeft.setPower(-0.2);
+                    motorBackLeft.setPower(-0.2);
+                    motorBackRight.setPower(-0.2);
                 }
 
                 if (!gamepad1.dpad_up && !gamepad1.dpad_down && gamepad1.dpad_left && !gamepad1.dpad_right) {
-                    motorFrontRight.setPower(0.1);
-                    motorFrontLeft.setPower(-0.1);
-                    motorBackLeft.setPower(-0.1);
-                    motorBackRight.setPower(0.1);
+                    motorFrontRight.setPower(0.2);
+                    motorFrontLeft.setPower(-0.2);
+                    motorBackLeft.setPower(-0.2);
+                    motorBackRight.setPower(0.2);
                 }
 
                 if (!gamepad1.dpad_up && !gamepad1.dpad_down && !gamepad1.dpad_left && gamepad1.dpad_right) {
-                    motorFrontRight.setPower(-0.1);
-                    motorFrontLeft.setPower(0.1);
-                    motorBackLeft.setPower(0.1);
-                    motorBackRight.setPower(-0.1);
+                    motorFrontRight.setPower(-0.2);
+                    motorFrontLeft.setPower(0.2);
+                    motorBackLeft.setPower(0.2);
+                    motorBackRight.setPower(-0.2);
                 }
 
             }
@@ -243,7 +243,7 @@ public class compiled extends LinearOpMode {
             }
 
             /**COLLECTOR*/
-            if (gamepad2.y && !gamepad2.x && !gamepad2.b) {
+            if (gamepad2.y && !gamepad2.x && !gamepad2.b && (gamepad2.right_trigger < 0.1)) {
 //                startTime = System.currentTimeMillis();
                 while (collectorServo.getPosition() < cOpen && !gamepad2.b) {
                     cPos = collectorServo.getPosition();
@@ -256,7 +256,7 @@ public class compiled extends LinearOpMode {
                 }
             }
 //            if (!collectorServoLimit.isPressed()) {
-                if (!gamepad2.y && gamepad2.x && !gamepad2.b) {
+                if (!gamepad2.y && gamepad2.x && !gamepad2.b && (gamepad2.right_trigger < 0.1)) {
 //                    startTime = System.currentTimeMillis();
                     while (collectorServo.getPosition() > cClose && !gamepad2.b) {
                         cPos = collectorServo.getPosition();
@@ -269,6 +269,18 @@ public class compiled extends LinearOpMode {
                     }
                 }
 //            }
+            if (!gamepad2.y && !gamepad2.x && !gamepad2.b && (gamepad2.right_trigger > 0.1)) {
+//                startTime = System.currentTimeMillis();
+                while (collectorServo.getPosition() < cMid && !gamepad2.b) {
+                    cPos = collectorServo.getPosition();
+                    cPos += 0.05;
+                    collectorServo.setPosition(cPos);
+                }
+                if (cPos > cMid) {
+                    cPos = cMid;
+                    collectorServo.setPosition(cMid);
+                }
+            }
             if (collectorDC.getCurrentPosition() < 1790) {
                 if (gamepad2.b && !gamepad2.a && collectorDC.getCurrentPosition() < 1790) {
                     collectorDC.setPower(0.8);
@@ -280,12 +292,12 @@ public class compiled extends LinearOpMode {
                 }
             }
             if (!collectorExtLimit.isPressed()) {
-                if (!gamepad2.b && gamepad2.a && collectorDC.getCurrentPosition() > 10) {
+                if (!gamepad2.b && gamepad2.a) {
                     collectorDC.setPower(-0.8);
                 }
             }
             if (collectorExtLimit.isPressed()) {
-                if (!gamepad2.b && gamepad2.a && collectorDC.getCurrentPosition() > 10) {
+                if (!gamepad2.b && gamepad2.a) {
                     collectorDC.setPower(0);
                 }
             }
@@ -311,7 +323,7 @@ public class compiled extends LinearOpMode {
 
                 sweeperDC.setPower(0);
 
-                while (collectorDC.getCurrentPosition()>20) {
+                while (Math.abs(collectorDC.getCurrentPosition()) >= 15) {
                     collectorDC.setPower(-0.8);
                 }
 
