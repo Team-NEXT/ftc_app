@@ -1,0 +1,10 @@
+//**Changes for Detroit**//
+---------------------------
+1. solve while loop issues
+2. multithreading
+3. web cam
+4. gyro sensor (try phone)
+5. 90 point autonomous (or more)
+6. better implementation for encoders
+7. fix sway in auto
+8. improve control mapping
