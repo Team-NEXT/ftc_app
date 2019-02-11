@@ -140,20 +140,27 @@ public class compiled extends LinearOpMode {
             /**DRIVING*/
             if (gamepad1.right_trigger<0.1) {
 
-                double r = Math.hypot(gamepad1.left_stick_x, gamepad1.left_stick_y);
-                telemetry.addData("r = ", r);
+                double hypot = Math.hypot(gamepad1.left_stick_x, gamepad1.left_stick_y);
+                telemetry.addData("r = ", hypot);
+
                 double robotAngle = Math.atan2(-gamepad1.left_stick_y, gamepad1.left_stick_x) - Math.PI / 4;
                 telemetry.addData("robotAngle = ", robotAngle);
-                double rightX = -gamepad1.right_stick_x;
-                telemetry.addData("rightX = ", rightX);
-                final double v1 = r * Math.cos(robotAngle) + rightX;
+
+                double rightStickModifier = -gamepad1.right_stick_x;
+                telemetry.addData("rightX = ", rightStickModifier);
+
+                final double v1 = hypot * Math.cos(robotAngle) + rightStickModifier;
                 telemetry.addData("front left power = ", motorFrontLeft.getPower());
-                final double v2 = r * Math.sin(robotAngle) - rightX;
+
+                final double v2 = hypot * Math.sin(robotAngle) - rightStickModifier;
                 telemetry.addData("front right power = ", motorFrontRight.getPower());
-                final double v3 = r * Math.sin(robotAngle) + rightX;
+
+                final double v3 = hypot * Math.sin(robotAngle) + rightStickModifier;
                 telemetry.addData("back left power = ", motorBackLeft.getPower());
-                final double v4 = r * Math.cos(robotAngle) - rightX;
+
+                final double v4 = hypot * Math.cos(robotAngle) - rightStickModifier;
                 telemetry.addData("back right power = ", motorBackRight.getPower());
+
                 telemetry.update();
 
                 motorFrontRight.setPower(v2);
