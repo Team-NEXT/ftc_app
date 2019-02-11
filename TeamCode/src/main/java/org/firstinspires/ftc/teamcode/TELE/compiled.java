@@ -323,7 +323,7 @@ public class compiled extends LinearOpMode {
 
                 sweeperDC.setPower(0);
 
-                while (Math.abs(collectorDC.getCurrentPosition()) >= 15) {
+                while (collectorDC.getCurrentPosition()>20) {
                     collectorDC.setPower(-0.8);
                 }
 

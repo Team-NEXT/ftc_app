@@ -14,9 +14,9 @@ public class encoderServoTest extends LinearOpMode{
     private static Servo yServo;
 
     private static final double xUp = 0.21;
-    private static final double xDown = 0.85;
+    private static final double xDown = 0.79;
     private static final double yUp = 0.38;
-    private static final double yDown = 0.15;
+    private static final double yDown = 0.13;
 
     private static double xPos = 0;
     private static double yPos = 0;

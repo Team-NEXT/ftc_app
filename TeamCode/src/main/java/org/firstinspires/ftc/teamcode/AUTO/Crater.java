@@ -156,8 +156,8 @@ public class Crater extends LinearOpMode{
 
         xUp = 0.21;//0.15
         yUp = 0.38;
-        xDown = 0.85;
-        yDown = 0.15;
+        xDown = 0.79;
+        yDown = 0.13;
 
 
         //INITIALIZATION
@@ -175,7 +175,7 @@ public class Crater extends LinearOpMode{
         detector.useDefaults(); // Set detector to use default settings
 
         // Optional tuning
-        detector.alignSize = 150; // How wide (in pixels) is the range in which the gold object will be aligned. (Represented by green bars in the preview)
+        detector.alignSize = 180; // How wide (in pixels) is the range in which the gold object will be aligned. (Represented by green bars in the preview)
         detector.alignPosOffset = 0; // How far from center frame to offset this alignment zone.
         detector.downscale = 0.4; // How much to downscale the input frames
 
@@ -199,6 +199,8 @@ public class Crater extends LinearOpMode{
 
         yServo.setPosition(yDown);
         xServo.setPosition(xDown);
+
+        BACKWARD(50, 0.2);
 
         Thread.sleep(100);
 
@@ -227,10 +229,7 @@ public class Crater extends LinearOpMode{
             telemetry.update();
         }
 
-        Thread.sleep(100);
-
-
-        BACKWARD(50, 0.2);
+        Thread.sleep(3000);
 
         if (mineralPos == 1) {
 
@@ -238,7 +237,7 @@ public class Crater extends LinearOpMode{
 
             FORWARD(500, 0.5);
 
-            SWAYRIGHT(140);
+            SWAYRIGHT2(140);
 
             SWAYLEFT(160);
 
@@ -285,7 +284,7 @@ public class Crater extends LinearOpMode{
 
             FORWARD(50, 0.5);
 
-            SWAYRIGHT(105);
+            SWAYRIGHT2(105);
 
             Thread.sleep(100);
 
@@ -338,7 +337,7 @@ public class Crater extends LinearOpMode{
 //            COASTBACKWARD(260, 0.7);
             BACKWARD(200, 0.4);
 
-            SWAYRIGHT(130);
+            SWAYRIGHT2(130);
 
             SWAYLEFT(160);
 
@@ -568,6 +567,34 @@ public class Crater extends LinearOpMode{
 //    }
 
     public void SWAYRIGHT (int mmDistance) {
+
+        targetTicks = mmDistance * singleTicks;
+
+        sweeperDC.setMode(STOP_AND_RESET_ENCODER);
+        sweeperDC.setMode(RUN_USING_ENCODER);
+
+        while ((targetTicks-100) > Math.abs(sweeperDC.getCurrentPosition())) {
+            motorFrontRight.setPower(-0.6);
+            motorBackRight.setPower(0.4);
+            motorFrontLeft.setPower(0.8);
+            motorBackLeft.setPower(-0.8);
+
+            telemetry.addData("FR", motorFrontRight.getPower());
+            telemetry.addData("BR", motorBackRight.getPower());
+            telemetry.addData("FL", motorFrontLeft.getPower());
+            telemetry.addData("BL", motorBackLeft.getPower());
+            telemetry.addData("x: ", Math.abs(sweeperDC.getCurrentPosition()));
+            telemetry.update();
+        }
+
+        motorFrontRight.setPower(0);
+        motorBackRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+
+    }
+
+    public void SWAYRIGHT2 (int mmDistance) {
 
         targetTicks = mmDistance * singleTicks;
 

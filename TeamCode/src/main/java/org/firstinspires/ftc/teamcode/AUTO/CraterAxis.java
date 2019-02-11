@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.AUTO;
 
+import android.provider.Telephony;
+
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsTouchSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -16,17 +18,15 @@ import com.disnodeteam.dogecv.detectors.roverrukus.GoldAlignDetector;
 import com.disnodeteam.dogecv.detectors.roverrukus.SamplingOrderDetector;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.robotcore.external.navigation.Axis;
 import org.opencv.core.Mat;
-import org.opencv.video.BackgroundSubtractor;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 
-@Autonomous(name = "Depot", group = "auto")
+@Autonomous(name = "65 point Crater with Axis Turns", group = "auto")
 
-public class Depot extends LinearOpMode{
+public class CraterAxis extends LinearOpMode{
 
     private GoldAlignDetector detector;
 
@@ -142,31 +142,31 @@ public class Depot extends LinearOpMode{
 //        cExtPos = collectorDC.getCurrentPosition();
         cOpen = 0.92;
         cClose = 0.12;
-        cMid = 0.8;
+        cMid = 0.6;
 
         //DROPPING
         dropperDC = hardwareMap.dcMotor.get("dropDC");
         dropperServo = hardwareMap.servo.get("dServo");
         dropperExtLimit = hardwareMap.get(ModernRoboticsTouchSensor.class, "dropper");
 
-        dLoad = 0.64;
-        dUnload = 0.3;
+        dLoad = 0.66;
+        dUnload = 0.29;
 
         //DRIVE ENCODERS
         xServo = hardwareMap.servo.get("xServo");
         yServo = hardwareMap.servo.get("yServo");
 
-        xUp = 0.21;//0.12//0.15
+        xUp = 0.21;//0.15
         yUp = 0.38;
         xDown = 0.79;
-        yDown = 0.13;//0.15//0.07
+        yDown = 0.13;
 
 
         //INITIALIZATION
         dropperServo.setPosition(dLoad);
         collectorServo.setPosition(cClose);
         xServo.setPosition(xUp);
-        yServo.setPosition(yUp);
+        yServo.setPosition(xUp);
 
         /**DetectorINIT*/
         telemetry.addData("Status", "DogeCV 2018.0 - Gold Align Example");
@@ -177,7 +177,7 @@ public class Depot extends LinearOpMode{
         detector.useDefaults(); // Set detector to use default settings
 
         // Optional tuning
-        detector.alignSize = 210; // How wide (in pixels) is the range in which the gold object will be aligned. (Represented by green bars in the preview)
+        detector.alignSize = 220; // How wide (in pixels) is the range in which the gold object will be aligned. (Represented by green bars in the preview)
         detector.alignPosOffset = 0; // How far from center frame to offset this alignment zone.
         detector.downscale = 0.4; // How much to downscale the input frames
 
@@ -190,7 +190,7 @@ public class Depot extends LinearOpMode{
 
         detector.enable(); // Start the detector!
 
-//        mineralPos = 1;
+        //mineralPos = 2;
 
         /**START*/
         waitForStart();
@@ -201,6 +201,8 @@ public class Depot extends LinearOpMode{
 
         yServo.setPosition(yDown);
         xServo.setPosition(xDown);
+
+        BACKWARD(50, 0.2);
 
         Thread.sleep(100);
 
@@ -229,160 +231,188 @@ public class Depot extends LinearOpMode{
             telemetry.update();
         }
 
-        BACKWARD(50, 0.2);
-
-        Thread.sleep(100);
+//        Thread.sleep(3000);
 
         if (mineralPos == 1) {
 
-            SWAYRIGHT(240);
+            SWAYRIGHT(220);
 
-            FORWARD(400, 0.4);
+            Thread.sleep(100);
 
-            AXISRIGHT(0.4, 112);
+            xServo.setPosition(xUp);
 
-            FORWARD(600, 0.5);
+            FORWARD(400, 0.3);
 
-            CSERVODOWN(0.02);
+            Thread.sleep(100);
+
+            AXISRIGHT(0.4, 90);
+
+            Thread.sleep(100);
+
+            FORWARD(340, 0.3);
+
+            Thread.sleep(100);
+//
+//            BACKWARD(320, 0.3);
+//
+//            Thread.sleep(100);
+//
+//            AXISLEFT(90, 0.3);
+//
+//            Thread.sleep(100);
+//
+//            FORWARD(700, 0.3);
+
+            CSERVODOWN(0.04);
+
+        /**    BACKWARD(210, 0.3);
+
+            Thread.sleep(100);
+
+            AXISLEFT(90,0.3);
+
+            Thread.sleep(100);
+
+            FORWARD(530, 0.3);
+
+            Thread.sleep(100);
+
+            AXISLEFT(44, 0.3);
+
+            FORWARD(920, 0.3);
+
+            CSERVOS(0.03);
 
             SWEEPER(-1);
-            Thread.sleep(2000);
+            Thread.sleep(1500);
             SWEEPER(0);
 
-            Thread.sleep(100);
+            CSERVOUP(0.07);
 
-            CSERVOUP(0.6);
-
-            Thread.sleep(100);
-
-            AXISRIGHT(0.4, 10);
-
-            BACKWARD(500, 0.5);
-
-            BACKWARD(600, 0.5);
-
-//            BACKWARD(100, 0.5);
-
-//            dropperDC.setMode(STOP_AND_RESET_ENCODER);
-//            dropperDC.setMode(RUN_USING_ENCODER);
-//
-//            while (Math.abs(dropperDC.getCurrentPosition()) < 1000) {
-//                dropperDC.setPower(1);
-//            }
-//            dropperDC.setPower(0);
+            BACKWARD(1420 ,0.3);
+         */
 
         }
 
         if (mineralPos == 2) {
 
-            SWAYRIGHT(240); //distance = 90
+            SWAYRIGHT(200);
 
-            Thread.sleep(200);
+            Thread.sleep(100);
+
+            xServo.setPosition(xUp);
+
+            FORWARD(80, 0.3);
+
+            Thread.sleep(100);
 
             AXISRIGHT(0.3, 90);
 
             Thread.sleep(100);
 
-            FORWARD(500, 0.6);
+            FORWARD(280, 0.3);
 
-            CSERVODOWN(0.02);
+//            Thread.sleep(100);
+//
+//            BACKWARD(350, 0.3);
+//
+//            Thread.sleep(100);
+//
+//            AXISLEFT(90, 0.3);
+//
+//            Thread.sleep(100);
+//
+//            FORWARD(950, 0.3);
+
+            CSERVODOWN(0.04);
+
+            /**BACKWARD(200, 0.3);
+
+            Thread.sleep(100);
+
+            AXISLEFT(87, 0.2);
+
+            Thread.sleep(100);
+
+            FORWARD(920, 0.4);
+
+            Thread.sleep(100);
+
+            AXISLEFT(44, 0.3);
+
+            Thread.sleep(100);
+
+            FORWARD(920, 0.3);
+
+            CSERVOS(0.03);
 
             SWEEPER(-1);
-            Thread.sleep(2000);
+            Thread.sleep(1500);
             SWEEPER(0);
 
-            Thread.sleep(100);
+            CSERVOUP(0.07);
 
-            CSERVOUP(0.6);
-
-            Thread.sleep(100);
-
-            BACKWARD(450, 0.4);
-            BACKWARD(100, 0.3);
-
-
-//            Thread.sleep(100);
-//
-            AXISLEFT(90, 0.4);
-//
-//            Thread.sleep(100);
-//
-            FORWARD(680, 0.4);
-//
-//            Thread.sleep(100);
-
-            AXISLEFT(32, 0.4);
-//
-//            Thread.sleep(100);
-//
-//            COLLECTOREXPAND(1000, 0.8);
-
-            FORWARD(300, 0.5);
-
-            CSERVODOWN(0.02);
-
+            BACKWARD(1420, 0.4);
+*/
         }
 
         if (mineralPos == 3) {
 
-            SWAYRIGHT(250);
+            SWAYRIGHT(280); //distance = 90
 
-            BACKWARD(430, 0.4);
+            xServo.setPosition(xUp);
 
-            AXISRIGHT(0.4, 45);
+            Thread.sleep(100);
 
-            FORWARD(500, 0.5);
+//            COASTBACKWARD(260, 0.7);23456u5432654362uu
+            BACKWARD(170, 0.3);
 
-            CSERVODOWN(0.02);
+            Thread.sleep(100);
+
+            AXISRIGHT(0.3, 85);
+
+            Thread.sleep(100);
+
+            FORWARD(300, 0.3);
+
+            Thread.sleep(100);
+//
+//            BACKWARD(250, 0.3);
+//
+//            Thread.sleep(100);
+//
+//            AXISLEFT(90, 0.3);
+//
+//            Thread.sleep(100);
+//
+//            FORWARD(1300, 0.3);
+
+           CSERVODOWN(0.04);
+
+       /**     BACKWARD(170, 0.3);
+
+            AXISLEFT(91, 0.4);
+
+            FORWARD(1160, 0.3);
+
+            AXISLEFT(44, 0.2);
+
+            FORWARD(980, 0.4);
+
+            CSERVOS(0.03);
 
             SWEEPER(-1);
-            Thread.sleep(2000);
+            Thread.sleep(1500);
             SWEEPER(0);
 
-            Thread.sleep(100);
+            CSERVOUP(0.07);
 
-            CSERVOUP(0.6);
+            AXISLEFT(5,0.2);
 
-            Thread.sleep(100);
-
-            BACKWARD(400, 0.4);
-            BACKWARD(100, 0.3);
-
-            AXISLEFT(90, 0.4);
-
-            FORWARD(1050, 0.5);
-
-            AXISLEFT(24, 0.4);
-
-            FORWARD(450, 0.7);
-
-            CSERVODOWN(0.02);
-
+            BACKWARD(1500, 0.4);
+*/
         }
 
-//        Thread.sleep(100);
-//
-//        AXISLEFT(46, 0.4);
-//
-//        Thread.sleep(100);
-//
-//        FORWARD(150, 0.5);
-//
-//        Thread.sleep(100);
-
-//        COLLECTOREXPAND(1000, 0.8);
-
-//        CSERVODOWN(0.02);
-
-//        SWEEPER(1);
-//        Thread.sleep(2000);
-//        SWEEPER(0);
-
-//        CSERVOUP(0.07);
-
-//        collectorDC.setPower(-0.2);
-
-//        BACKWARD(800, 0.6);
 
 //        COLLECTORCONTRACT(0.8);
 
@@ -468,6 +498,34 @@ public class Depot extends LinearOpMode{
 
     }
 
+    public void c3lBACKWARD (int mmDistance, double power) {
+
+        targetTicks = mmDistance * singleTicks;
+
+        latchingDC.setMode(STOP_AND_RESET_ENCODER);
+        latchingDC.setMode(RUN_USING_ENCODER);
+
+        while ((targetTicks-100) > Math.abs(latchingDC.getCurrentPosition())) {
+            motorFrontRight.setPower(-power);
+            motorBackRight.setPower(-power);
+            motorFrontLeft.setPower(-power);
+            motorBackLeft.setPower(-power);
+
+            telemetry.addData("FR", motorFrontRight.getPower());
+            telemetry.addData("BR", motorBackRight.getPower());
+            telemetry.addData("FL", motorFrontLeft.getPower());
+            telemetry.addData("BL", motorBackLeft.getPower());
+            telemetry.addData("y: ", Math.abs(latchingDC.getCurrentPosition()));
+            telemetry.update();
+        }
+
+        motorBackRight.setPower(0);
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+
+    }
+
     public void COASTBACKWARD (int mmDistance, double power) {
 
         targetTicks = mmDistance * singleTicks;
@@ -499,9 +557,9 @@ public class Depot extends LinearOpMode{
         sweeperDC.setMode(RUN_USING_ENCODER);
 
         while ((targetTicks-100) > Math.abs(sweeperDC.getCurrentPosition())) {
-            motorFrontRight.setPower(0.6);
+            motorFrontRight.setPower(0.5);
             motorBackRight.setPower(-0.4);
-            motorFrontLeft.setPower(-0.7);
+            motorFrontLeft.setPower(-0.6);
             motorBackLeft.setPower(0.8);
 
             telemetry.addData("FR", motorFrontRight.getPower());
@@ -519,7 +577,7 @@ public class Depot extends LinearOpMode{
 
     }
 
-    public void D2_SWAYLEFT (int mmDistance) {
+    public void C2_SWAYLEFT (int mmDistance) {
 
         targetTicks = mmDistance * singleTicks;
 
@@ -529,8 +587,8 @@ public class Depot extends LinearOpMode{
         while ((targetTicks-100) > Math.abs(sweeperDC.getCurrentPosition())) {
             motorFrontRight.setPower(0.5);
             motorBackRight.setPower(-0.4);
-            motorFrontLeft.setPower(-0.7);
-            motorBackLeft.setPower(0.9);
+            motorFrontLeft.setPower(-0.6);
+            motorBackLeft.setPower(0.8);
 
             telemetry.addData("FR", motorFrontRight.getPower());
             telemetry.addData("BR", motorBackRight.getPower());
@@ -578,9 +636,37 @@ public class Depot extends LinearOpMode{
         sweeperDC.setMode(RUN_USING_ENCODER);
 
         while ((targetTicks-100) > Math.abs(sweeperDC.getCurrentPosition())) {
-            motorFrontRight.setPower(-0.7);
+            motorFrontRight.setPower(-0.6);
             motorBackRight.setPower(0.4);
-            motorFrontLeft.setPower(0.7);
+            motorFrontLeft.setPower(0.8);
+            motorBackLeft.setPower(-0.8);
+
+            telemetry.addData("FR", motorFrontRight.getPower());
+            telemetry.addData("BR", motorBackRight.getPower());
+            telemetry.addData("FL", motorFrontLeft.getPower());
+            telemetry.addData("BL", motorBackLeft.getPower());
+            telemetry.addData("x: ", Math.abs(sweeperDC.getCurrentPosition()));
+            telemetry.update();
+        }
+
+        motorFrontRight.setPower(0);
+        motorBackRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+
+    }
+
+    public void SWAYRIGHT2 (int mmDistance) {
+
+        targetTicks = mmDistance * singleTicks;
+
+        sweeperDC.setMode(STOP_AND_RESET_ENCODER);
+        sweeperDC.setMode(RUN_USING_ENCODER);
+
+        while ((targetTicks-100) > Math.abs(sweeperDC.getCurrentPosition())) {
+            motorFrontRight.setPower(-0.6);
+            motorBackRight.setPower(0.4);
+            motorFrontLeft.setPower(0.8);
             motorBackLeft.setPower(-0.8);
 
             telemetry.addData("FR", motorFrontRight.getPower());
@@ -612,7 +698,7 @@ public class Depot extends LinearOpMode{
         latchingDC.setMode(STOP_AND_RESET_ENCODER);
         latchingDC.setMode(RUN_USING_ENCODER);
 
-        while ((targetTicks - 100) > Math.abs(latchingDC.getCurrentPosition())) {
+        while ((targetTicks - 60) > Math.abs(latchingDC.getCurrentPosition())) {
             motorFrontRight.setPower(power);
             motorFrontLeft.setPower(-power);
             motorBackLeft.setPower(-power);
@@ -660,9 +746,9 @@ public class Depot extends LinearOpMode{
         collectorDC.setMode(STOP_AND_RESET_ENCODER);
         collectorDC.setMode(RUN_USING_ENCODER);
 
-        do {
+        while ((limit - 10) < Math.abs(collectorDC.getCurrentPosition())) {
             collectorDC.setPower(power);
-        } while (Math.abs(collectorDC.getCurrentPosition()) < limit);
+        }
 
         collectorDC.setPower(0);
 
@@ -690,6 +776,20 @@ public class Depot extends LinearOpMode{
         }
         if (cPos > cMid) {
             cPos = cMid;
+            collectorServo.setPosition(cPos);
+        }
+
+    }
+
+    public void CSERVOS (double power) { //0.02
+
+        while (collectorServo.getPosition() < cOpen) {
+            cPos = collectorServo.getPosition();
+            cPos += power;
+            collectorServo.setPosition(cPos);
+        }
+        if (cPos > cOpen) {
+            cPos = cOpen;
             collectorServo.setPosition(cPos);
         }
 
