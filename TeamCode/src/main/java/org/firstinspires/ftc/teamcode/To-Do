@@ -1,10 +1,42 @@
 //**Changes for Detroit**//
 ---------------------------
-1. solve while loop issues
-2. multithreading
-3. web cam
-4. gyro sensor (try phone)
-5. 90 point autonomous (or more)
-6. better implementation for encoders
-7. fix sway in auto
-8. improve control mapping
+
+1. **SOLVE WHILE LOOP ISSUES
+
+2. MULTITHREADING
+
+3. GYRO SENSOR (PHONE)
+
+4. 90 point autonomous (or more)
+
+5. better implementation for encoders
+
+6. fix sway in auto (gyro, encoders)
+
+7. improve control mapping
+
+8. kontrolfreeks
+
+9. TensorFlow
+
+10. telemetry games
+
+11. improve auto turning (gyro, encoders)
+
+
+//**To-Do**//
+-------------
+
+1. Autonomous basic routes
+
+2. Autonomous additional routes
+
+3. TeleOp basic code
+
+4. TeleOp experimental code
+
+
+//**Miscellaneous**//
+---------------------
+
+1. MR gyro sensor needs to be attached to the robot
