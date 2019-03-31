@@ -162,6 +162,7 @@ public class TensorFlowExample extends LinearOpMode {
 
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
         parameters.cameraDirection = CameraDirection.BACK;
+        parameters.fillCameraMonitorViewParent = true;
 
         //  Instantiate the Vuforia engine
         vuforia = ClassFactory.getInstance().createVuforia(parameters);

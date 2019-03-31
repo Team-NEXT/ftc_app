@@ -10,7 +10,7 @@ public class dropServoTest extends LinearOpMode{
 
     private static Servo dropServo;
 
-    private static double servoPos = 0;
+    private static double servoPos = 0, dU = 0.32, dL = 0.71;
 
     @Override
     public void runOpMode() throws InterruptedException {

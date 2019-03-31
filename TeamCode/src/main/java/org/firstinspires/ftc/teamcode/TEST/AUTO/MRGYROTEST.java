@@ -2,11 +2,15 @@
 
 package org.firstinspires.ftc.teamcode.TEST.AUTO;
 
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.I2cDevice;
+import com.qualcomm.robotcore.hardware.IntegratingGyroscope;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
@@ -21,306 +25,76 @@ public class MRGYROTEST extends LinearOpMode{
     private static DcMotor motorFrontLeft;
     private static DcMotor motorBackLeft;
 
-    private static double x_pos;
-    private static double y_pos;
+    private static IntegratingGyroscope gyro;
+    private static ModernRoboticsI2cGyro mrgyro;
 
-    private static Servo xServo;
-    private static Servo yServo;
+    private ElapsedTime timer = new ElapsedTime();
 
-    private static double x_down = 0.72;
-    private static double y_down = 0.08;
+    private double targetHeading;
 
-    // private static double x_encoder;
-    // private static double y_encoder;
-
-    private static double rampDownFactor = 0;
-    private static double rampTicks = 0;
-
-    private static double targetTicks = 0;
-    private static final double finalTicks = 2400;
-    private static final double singleTicks = 16;
-
-    private static final double wheelDiameter = 48;
-
+    private boolean inRange;
 
     @Override
     public void runOpMode() throws InterruptedException {
 
         //DRIVE
-        motorFrontRight = hardwareMap.dcMotor.get("frontRight");
-        motorBackRight = hardwareMap.dcMotor.get("backRight");
-        motorFrontLeft = hardwareMap.dcMotor.get("frontLeft");
-        motorBackLeft = hardwareMap.dcMotor.get("backLeft");
+        motorFrontRight = hardwareMap.dcMotor.get("FR");
+        motorBackRight = hardwareMap.dcMotor.get("BR");
+        motorFrontLeft = hardwareMap.dcMotor.get("FL");
+        motorBackLeft = hardwareMap.dcMotor.get("BL");
 
-        motorFrontLeft.setDirection(REVERSE);
-        motorBackLeft.setDirection(REVERSE);
+        //GYRO
+        mrgyro = hardwareMap.get(ModernRoboticsI2cGyro.class, "gyro");
+        gyro = (IntegratingGyroscope) mrgyro;
 
-        motorFrontRight.setMode(STOP_AND_RESET_ENCODER);
-        motorBackRight.setMode(STOP_AND_RESET_ENCODER);
+        telemetry.log().add("Gyro Calibrating. Do Not Move!");
+        mrgyro.calibrate();
 
-        motorFrontRight.setMode(RUN_USING_ENCODER);
-        motorBackRight.setMode(RUN_USING_ENCODER);
+        // Wait until the gyro calibration is complete
+        timer.reset();
+        while (!isStopRequested() && mrgyro.isCalibrating())  {
+            telemetry.addData("calibrating", "%s", Math.round(timer.seconds())%2==0 ? "|.." : "..|");
+            telemetry.update();
+            sleep(50);
+        }
 
-        //ENCODER SERVOS
-        xServo.setPosition(x_down);
-        yServo.setPosition(y_down);
-
-        // x_encoder = motorBackRight.getCurrentPosition();
-        // y_encoder = motorFrontRight.getCurrentPosition();
-
+        telemetry.log().clear(); telemetry.log().add("Gyro Calibrated. Press Start.");
+        telemetry.clear(); telemetry.update();
 
         waitForStart();
 
         /**AUTO CODE*/
 
-        FORWARD(1000, 0.8);
-
-        Thread.sleep(1500);
-
-        FORWARD(300, 0.8);
-    }
-
-    public static void FORWARD (int mmDistance, double power) {
-
-        targetTicks = mmDistance * singleTicks;
-
-        motorBackRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFrontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        while ((targetTicks-50) > Math.abs(motorFrontRight.getCurrentPosition())) {
-            motorFrontRight.setPower(power);
-            motorBackRight.setPower(power);
-            motorFrontLeft.setPower(power);
-            motorBackLeft.setPower(power);
-        }
-
-        motorFrontRight.setPower(0);
-        motorBackRight.setPower(0);
-        motorFrontLeft.setPower(0);
-        motorBackLeft.setPower(0);
+        AXISLEFT90(90, 0.5);
 
     }
 
-    public static void BACKWARD (int mmDistance, double power) {
+    /**METHODS*/
 
-        targetTicks = mmDistance * singleTicks;
+    public void AXISLEFT90 (double targetAngle, double power) {
 
-        motorBackRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFrontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        mrgyro.resetZAxisIntegrator();
 
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        inRange = false;
 
-        while ((targetTicks-50) > Math.abs(motorFrontRight.getCurrentPosition())) {
-            motorFrontRight.setPower(-power);
-            motorBackRight.setPower(-power);
-            motorFrontLeft.setPower(-power);
-            motorBackLeft.setPower(-power);
+        while (mrgyro.getIntegratedZValue() < 90) {
+                motorFrontRight.setPower(power);
+                motorFrontLeft.setPower(-power);
+                motorBackLeft.setPower(-power);
+                motorBackRight.setPower(power);
+
+            telemetry.addData("FR", motorFrontRight.getPower());
+            telemetry.addData("BR", motorBackRight.getPower());
+            telemetry.addData("FL", motorFrontLeft.getPower());
+            telemetry.addData("BL", motorBackLeft.getPower());
+            telemetry.addData("z: ", mrgyro.getIntegratedZValue());
+            telemetry.update();
         }
 
         motorFrontRight.setPower(0);
-        motorBackRight.setPower(0);
         motorFrontLeft.setPower(0);
         motorBackLeft.setPower(0);
-
-    }
-
-    public static void SWAYLEFT (int mmDistance, double power) {
-
-        targetTicks = mmDistance * singleTicks;
-
-        motorBackRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFrontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        while ((targetTicks-50) > Math.abs(motorBackRight.getCurrentPosition())) {
-            motorFrontRight.setPower(power);
-            motorBackRight.setPower(-power);
-            motorFrontLeft.setPower(-power);
-            motorBackLeft.setPower(power);
-        }
-
-        motorFrontRight.setPower(0);
         motorBackRight.setPower(0);
-        motorFrontLeft.setPower(0);
-        motorBackLeft.setPower(0);
-
-    }
-
-    public static void SWAYRIGHT (int mmDistance, double power) {
-
-        targetTicks = mmDistance * singleTicks;
-
-        motorBackRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFrontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        while ((targetTicks-50) > Math.abs(motorBackRight.getCurrentPosition())) {
-            motorFrontRight.setPower(-power);
-            motorBackRight.setPower(power);
-            motorFrontLeft.setPower(power);
-            motorBackLeft.setPower(-power);
-        }
-
-        motorFrontRight.setPower(0);
-        motorBackRight.setPower(0);
-        motorFrontLeft.setPower(0);
-        motorBackLeft.setPower(0);
-
-    }
-
-    public static void RAMP_FORWARD (int mmDistance, double power, double lowerLimit, double rampDownFactor) {
-
-        targetTicks = mmDistance * singleTicks;
-
-        rampTicks = targetTicks * 0.25;
-
-        motorBackRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFrontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        while (targetTicks*0.75 > Math.abs(motorFrontRight.getCurrentPosition())) {
-            motorFrontRight.setPower(power);
-            motorBackRight.setPower(power);
-            motorFrontLeft.setPower(power);
-            motorBackLeft.setPower(power);
-        }
-
-        while (targetTicks > Math.abs(motorFrontRight.getCurrentPosition())) {
-            power -= rampDownFactor;
-            if (power <= lowerLimit) {
-                power = lowerLimit;
-            }
-            motorFrontRight.setPower(power);
-            motorBackRight.setPower(power);
-            motorFrontLeft.setPower(power);
-            motorBackLeft.setPower(power);
-        }
-
-        motorFrontRight.setPower(0);
-        motorBackRight.setPower(0);
-        motorFrontLeft.setPower(0);
-        motorBackLeft.setPower(0);
-
-    }
-
-    public static void RAMP_BACKWARD (int mmDistance, double power, double lowerLimit, double rampDownFactor) {
-
-        targetTicks = mmDistance * singleTicks;
-
-        rampTicks = targetTicks * 0.25;
-
-        motorBackRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFrontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        while (targetTicks*0.75 > Math.abs(motorFrontRight.getCurrentPosition())) {
-            motorFrontRight.setPower(-power);
-            motorBackRight.setPower(-power);
-            motorFrontLeft.setPower(-power);
-            motorBackLeft.setPower(-power);
-        }
-
-        while (targetTicks > Math.abs(motorFrontRight.getCurrentPosition())) {
-            power -= rampDownFactor;
-            if (power <= lowerLimit) {
-                power = lowerLimit;
-            }
-            motorFrontRight.setPower(-power);
-            motorBackRight.setPower(-power);
-            motorFrontLeft.setPower(-power);
-            motorBackLeft.setPower(-power);
-        }
-
-        motorFrontRight.setPower(0);
-        motorBackRight.setPower(0);
-        motorFrontLeft.setPower(0);
-        motorBackLeft.setPower(0);
-
-    }
-
-    public static void RAMP_SWAYLEFT (int mmDistance, double power, double lowerLimit, double rampDownFactor) {
-
-        targetTicks = mmDistance * singleTicks;
-
-        rampTicks = targetTicks * 0.25;
-
-        motorBackRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFrontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        while (targetTicks*0.75 > Math.abs(motorBackRight.getCurrentPosition())) {
-            motorFrontRight.setPower(power);
-            motorBackRight.setPower(-power);
-            motorFrontLeft.setPower(-power);
-            motorBackLeft.setPower(power);
-        }
-
-        while (targetTicks > Math.abs(motorBackRight.getCurrentPosition())) {
-            power -= rampDownFactor;
-            if (power <= lowerLimit) {
-                power = lowerLimit;
-            }
-            motorFrontRight.setPower(power);
-            motorBackRight.setPower(-power);
-            motorFrontLeft.setPower(-power);
-            motorBackLeft.setPower(power);
-        }
-
-        motorFrontRight.setPower(0);
-        motorBackRight.setPower(0);
-        motorFrontLeft.setPower(0);
-        motorBackLeft.setPower(0);
-
-    }
-
-    public static void RAMP_SWAYRIGHT (int mmDistance, double power, double lowerLimit, double rampDownFactor) {
-
-        targetTicks = mmDistance * singleTicks;
-
-        rampTicks = targetTicks * 0.25;
-
-        motorBackRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorFrontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        motorBackLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        motorBackRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        while (targetTicks*0.75 > Math.abs(motorBackRight.getCurrentPosition())) {
-            motorFrontRight.setPower(-power);
-            motorBackRight.setPower(power);
-            motorFrontLeft.setPower(power);
-            motorBackLeft.setPower(-power);
-        }
-
-        while (targetTicks > Math.abs(motorBackRight.getCurrentPosition())) {
-            power -= rampDownFactor;
-            if (power <= lowerLimit) {
-                power = lowerLimit;
-            }
-            motorFrontRight.setPower(-power);
-            motorBackRight.setPower(power);
-            motorFrontLeft.setPower(power);
-            motorBackLeft.setPower(-power);
-        }
-
-        motorFrontRight.setPower(0);
-        motorBackRight.setPower(0);
-        motorFrontLeft.setPower(0);
-        motorBackLeft.setPower(0);
 
     }
 

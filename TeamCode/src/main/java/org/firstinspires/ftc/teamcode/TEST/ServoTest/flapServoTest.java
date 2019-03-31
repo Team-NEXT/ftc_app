@@ -4,18 +4,18 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp(name = "SERVO TEST : collector", group = "test")
+@TeleOp(name = "SERVO TEST : flap", group = "test")
 
-public class collectServoTest extends LinearOpMode{
+public class flapServoTest extends LinearOpMode{
 
-    private static Servo collectServo;
+    private static Servo flapServo;
 
-    private static double servoPos = 0.5, cUP = 0.28, cDOWN = 0.4, cMID = 0.6;
+    private static double servoPos = 0.5, FO = 0.28, FC = 0.4;
 
     @Override
     public void runOpMode() throws InterruptedException {
 
-        collectServo = hardwareMap.servo.get("cServo");
+        flapServo = hardwareMap.servo.get("flapServo");
 
         servoPos = 0.5;
 
@@ -39,9 +39,9 @@ public class collectServoTest extends LinearOpMode{
                 servoPos -= 0.01;
             }
 
-            collectServo.setPosition(servoPos);
+            flapServo.setPosition(servoPos);
 
-            telemetry.addData("collectServo: ", collectServo.getPosition());
+            telemetry.addData("flapServo: ", flapServo.getPosition());
             telemetry.update();
 
         }

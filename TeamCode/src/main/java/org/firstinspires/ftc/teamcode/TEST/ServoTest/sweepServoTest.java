@@ -2,22 +2,25 @@ package org.firstinspires.ftc.teamcode.TEST.ServoTest;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp(name = "SERVO TEST : collector", group = "test")
+@TeleOp(name = "SERVO TEST : sweeper", group = "test")
 
-public class collectServoTest extends LinearOpMode{
+public class sweepServoTest extends LinearOpMode{
 
-    private static Servo collectServo;
+    private static CRServo sweeperServo;
+    private static Servo flapServo;
 
-    private static double servoPos = 0.5, cUP = 0.28, cDOWN = 0.4, cMID = 0.6;
+    private static double servoPos = 0.5;
 
     @Override
     public void runOpMode() throws InterruptedException {
 
-        collectServo = hardwareMap.servo.get("cServo");
+        sweeperServo = hardwareMap.crservo.get("sweepServo");
+        flapServo = hardwareMap.servo.get("flapServo");
 
-        servoPos = 0.5;
+        flapServo.setPosition(0.2);
 
         waitForStart();
 
@@ -39,9 +42,9 @@ public class collectServoTest extends LinearOpMode{
                 servoPos -= 0.01;
             }
 
-            collectServo.setPosition(servoPos);
+            sweeperServo.setPower(servoPos);
 
-            telemetry.addData("collectServo: ", collectServo.getPosition());
+            telemetry.addData("val: ", sweeperServo.getPower());
             telemetry.update();
 
         }
