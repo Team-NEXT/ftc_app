@@ -35,7 +35,7 @@ public class MultithreadingTest extends LinearOpMode {
     private Servo flapServo;
     private ModernRoboticsTouchSensor collectorLimit;
 
-    private static double FO = 0.28, FC = 0.4;
+    private static double FO = 0.55, FC = 0.18;
 
     private double cPos;
     private double cMid;
@@ -63,6 +63,8 @@ public class MultithreadingTest extends LinearOpMode {
     private double yUp;
 
     private double startTime;
+
+    public boolean dExit = false, cExit = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -109,7 +111,7 @@ public class MultithreadingTest extends LinearOpMode {
 //        cSpeed = 0.07;
 
 //        cExtPos = collectorDC.getCurrentPosition();
-        cOpen = 0.92;
+        cOpen = 0.9;
         cClose = 0.03;
         cMid = 0.6;
         cInitial = 0.01;
@@ -139,12 +141,33 @@ public class MultithreadingTest extends LinearOpMode {
         collectorServo.setPosition(cInitial);
         xServo.setPosition(xUp);
         yServo.setPosition(yUp);
-        flapServo.setPosition(FC);
-        while (collectorDC.getCurrentPosition() < 240) {
-            collectorDC.setPower(0.3);
+        while (collectorServo.getPosition() > cMid) {
+            cPos = collectorServo.getPosition();
+            cPos -= 0.07;
+            collectorServo.setPosition(cPos);
+        }
+        if (cPos < cMid) {
+            collectorServo.setPosition(cMid);
+        }
+        while (!collectorLimit.isPressed()) {
+            collectorDC.setPower(-0.7);
         }
         collectorDC.setPower(0);
-        collectorServo.setPosition(cClose);
+        collectorDC.setMode(STOP_AND_RESET_ENCODER);
+        collectorDC.setMode(RUN_USING_ENCODER);
+        while (collectorServo.getPosition() >= cClose) {
+            cPos = collectorServo.getPosition();
+            cPos -= 0.07;
+            collectorServo.setPosition(cPos);
+        }
+        if (cPos < cClose) {
+            collectorServo.setPosition(cClose);
+        }
+        while (collectorDC.getCurrentPosition() < 235) {
+            collectorDC.setPower(0.4);
+        }
+        collectorDC.setPower(0);
+        flapServo.setPosition(FO);
 
         Thread driveThread = new DriveThread();
         Thread collectThread = new CollectThread();
@@ -172,7 +195,6 @@ public class MultithreadingTest extends LinearOpMode {
 
     }
 
-
     private class DriveThread extends Thread {
 
         public DriveThread() {
@@ -189,7 +211,9 @@ public class MultithreadingTest extends LinearOpMode {
 //                gamepad1.setJoystickDeadzone(0.3f); //THIS WAS NEVER ON
 
                 /**DRIVING*/
-                if (gamepad1.right_trigger<0.1) {
+                if (gamepad1.right_trigger < 0.1 && gamepad1.left_trigger < 0.2) {
+
+                    telemetry.addLine("full speed");
 
                     double hypot = Math.hypot(gamepad1.left_stick_x, gamepad1.left_stick_y);
                     telemetry.addData("r = ", hypot);
@@ -222,9 +246,9 @@ public class MultithreadingTest extends LinearOpMode {
                 }
 
                 /**INCHING*/
-                if (gamepad1.right_trigger > 0.1) {
+                if (gamepad1.right_trigger > 0.1 && !(gamepad1.left_trigger > 0.1)) {
 
-                    telemetry.addData("INCHING", motorFrontRight.getPower());
+                    telemetry.addLine("INCHING");
                     telemetry.update();
 
                     if (!gamepad1.dpad_up && !gamepad1.dpad_down && !gamepad1.dpad_left && !gamepad1.dpad_right) {
@@ -262,6 +286,39 @@ public class MultithreadingTest extends LinearOpMode {
                         motorBackRight.setPower(-0.2);
                     }
 
+                }
+
+                /**MEDIUM*/
+                if (gamepad1.left_trigger > 0.1 &&!(gamepad1.right_trigger > 0.1)) {
+                    telemetry.addLine("full speed");
+
+                    double hypot = Math.hypot((gamepad1.left_stick_x*0.5), (gamepad1.left_stick_y*0.5));
+                    telemetry.addData("r = ", hypot);
+
+                    double robotAngle = Math.atan2(-(gamepad1.left_stick_y*0.5), (gamepad1.left_stick_x*0.5)) - Math.PI / 4;
+                    telemetry.addData("robotAngle = ", robotAngle);
+
+                    double rightStickModifier = -(gamepad1.right_stick_x*0.5);
+                    telemetry.addData("rightX = ", rightStickModifier);
+
+                    final double v1 = hypot * Math.cos(robotAngle) + rightStickModifier;
+                    telemetry.addData("front left power = ", motorFrontLeft.getPower());
+
+                    final double v2 = hypot * Math.sin(robotAngle) - rightStickModifier;
+                    telemetry.addData("front right power = ", motorFrontRight.getPower());
+
+                    final double v3 = hypot * Math.sin(robotAngle) + rightStickModifier;
+                    telemetry.addData("back left power = ", motorBackLeft.getPower());
+
+                    final double v4 = hypot * Math.cos(robotAngle) - rightStickModifier;
+                    telemetry.addData("back right power = ", motorBackRight.getPower());
+
+                    telemetry.update();
+
+                    motorFrontRight.setPower(v2);
+                    motorFrontLeft.setPower(v1);
+                    motorBackLeft.setPower(v3);
+                    motorBackRight.setPower(v4);
                 }
 
             }
@@ -311,6 +368,7 @@ public class MultithreadingTest extends LinearOpMode {
 //            if (!collectorServoLimit.isPressed()) {
                 if (!gamepad2.y && gamepad2.x && !gamepad2.b && (gamepad2.right_trigger < 0.1)) {
 //                    startTime = System.currentTimeMillis();
+                    flapServo.setPosition(FO);
                     while (collectorServo.getPosition() > cClose && !gamepad2.b) {
                         cPos = collectorServo.getPosition();
                         cPos -= 0.07;
@@ -335,22 +393,22 @@ public class MultithreadingTest extends LinearOpMode {
                     }
                 }
                 if (collectorDC.getCurrentPosition() < 1800) {
-                    if (gamepad2.b && !gamepad2.a && collectorDC.getCurrentPosition() < 1800) {
+                    if (!gamepad2.a && gamepad2.b) {
                         collectorDC.setPower(1);
                     }
                 }
                 if (collectorDC.getCurrentPosition() >= 1800) {
-                    if (gamepad2.b && !gamepad2.a && collectorDC.getCurrentPosition() < 1800) {
+                    if (!gamepad2.a && gamepad2.b) {
                         collectorDC.setPower(0);
                     }
                 }
-                if (!collectorLimit.isPressed()) {
-                    if (!gamepad2.b && gamepad2.a) {
+                if (!collectorLimit.isPressed() || collectorDC.getCurrentPosition() > 262) {
+                    if (gamepad2.a && !gamepad2.b) {
                         collectorDC.setPower(-1);
                     }
                 }
-                if (collectorLimit.isPressed()) {
-                    if (!gamepad2.b && gamepad2.a) {
+                if (collectorLimit.isPressed() || collectorDC.getCurrentPosition() <= 262) {
+                    if (gamepad2.a && !gamepad2.b) {
                         collectorDC.setPower(0);
                     }
                 }
@@ -364,7 +422,9 @@ public class MultithreadingTest extends LinearOpMode {
 //                COLLECTOREXTCLOSE(0.8);
                     sweeperServo.setPower(1);
 
-                    while (collectorServo.getPosition() > cMid) {
+                    cExit = false;
+
+                    while (collectorServo.getPosition() > cMid && !cExit) {
                         cPos = collectorServo.getPosition();
                         cPos -= 0.07;
                         collectorServo.setPosition(cPos);
@@ -375,15 +435,29 @@ public class MultithreadingTest extends LinearOpMode {
                         collectorServo.setPosition(cPos);
                     }
 
+                    sweeperServo.setPower(0.6);
+
+                    while (collectorDC.getCurrentPosition() > 400 && !cExit) {
+                        collectorDC.setPower(-1);
+                    }
+
                     sweeperServo.setPower(0);
 
-                    while (collectorDC.getCurrentPosition()>20) {
-                        collectorDC.setPower(-0.8);
+                    while (collectorDC.getCurrentPosition() <= 400 && !collectorLimit.isPressed() && !cExit) {
+                        collectorDC.setPower(-0.3);
                     }
 
                     collectorDC.setPower(0);
 
-                    while (collectorServo.getPosition() >= cClose) {
+                    collectorDC.setMode(STOP_AND_RESET_ENCODER);
+                    collectorDC.setMode(RUN_USING_ENCODER);
+
+                    while (collectorDC.getCurrentPosition() <= 180) {
+                        collectorDC.setPower(0.4);
+                    }
+                    collectorDC.setPower(0);
+
+                    while (collectorServo.getPosition() >= cClose && !cExit) {
                         cPos = collectorServo.getPosition();
                         cPos -= 0.07;
                         collectorServo.setPosition(cPos);
@@ -426,7 +500,7 @@ public class MultithreadingTest extends LinearOpMode {
 //                startTime = System.currentTimeMillis();
                     while (dropperServo.getPosition() > dUnload) {
                         dPos = dropperServo.getPosition();
-                        dPos -= 0.09;
+                        dPos -= 0.04;
                         dropperServo.setPosition(dPos);
                     }
                     if (dPos < dUnload) {
@@ -438,7 +512,7 @@ public class MultithreadingTest extends LinearOpMode {
                     // startTime = System.currentTimeMillis();
                     while (dropperServo.getPosition() < dLoad) {
                         dPos = dropperServo.getPosition();
-                        dPos += 0.09;
+                        dPos += 0.04;
                         dropperServo.setPosition(dPos);
                     }
                     if (dPos > dLoad) {
@@ -447,10 +521,11 @@ public class MultithreadingTest extends LinearOpMode {
                     }
                 }
 
-                if (gamepad1. right_stick_button) {
-                    while (dropperServo.getPosition() > dLoad) {
+                if (gamepad1. right_stick_button && !gamepad1.left_stick_button) {
+                    dExit = false;
+                    while (dropperServo.getPosition() > dLoad && !dExit) {
                         dPos = dropperServo.getPosition();
-                        dPos += 0.09;
+                        dPos += 0.04;
                         collectorServo.setPosition(dPos);
                     }
                     if (dPos < dLoad) {
@@ -458,33 +533,64 @@ public class MultithreadingTest extends LinearOpMode {
                         dropperServo.setPosition(dPos);
                     }
 //        startTime = System.currentTimeMillis();
-                    while (dropperDC.getCurrentPosition() > 200) {
+                    while (dropperDC.getCurrentPosition() > 400 && !dExit) {
                         dropperDC.setPower(-1);
                     }
-                    while (!dropperLimit.isPressed()) {
-                        dropperDC.setPower(-0.4);
+                    dropperDC.setPower(0);
+                    while (!dropperLimit.isPressed() && !dExit) {
+                        dropperDC.setPower(-0.3);
                     }
+                    dropperDC.setMode(STOP_AND_RESET_ENCODER);
+                    dropperDC.setMode(RUN_USING_ENCODER);
+
                     dropperDC.setPower(0);
                 }
 
-//            if (dropperDC.getCurrentPosition() < 1900) {
+                if (!gamepad1. right_stick_button && gamepad1.left_stick_button && dropperDC.getCurrentPosition()<150) {
+                    dExit = false;
+                    dropperDC.setMode(STOP_AND_RESET_ENCODER);
+                    dropperDC.setMode(RUN_USING_ENCODER);
+                    while (dropperDC.getCurrentPosition() < 950 && !dExit) {
+                        dropperDC.setPower(1);
+                    }
+                    dropperDC.setPower(0);
+                    dropperDC.setPower(0);
+                    dropperDC.setPower(0);
+                    while (dropperServo.getPosition() > dUnload && !dExit) {
+                        dPos = dropperServo.getPosition();
+                        dPos -= 0.03;
+                        dropperServo.setPosition(dPos);
+                    }
+                    if (dPos < dUnload) {
+                        dropperServo.setPosition(dUnload);
+                    }
+                }
+
+            if (dropperDC.getCurrentPosition() < 950) {
                 if (gamepad1.right_bumper && !gamepad1.left_bumper) {
                     dropperDC.setPower(1);
                 }
-//            }
-//            if (dropperDC.getCurrentPosition() >= 1900) {
-//                if (gamepad1.right_bumper && !gamepad1.left_bumper) {
-//                    dropperDC.setPower(0);
-//                }
-//            }
+            }
+            if (dropperDC.getCurrentPosition() >= 950) {
+                if (gamepad1.right_bumper && !gamepad1.left_bumper) {
+                    dropperDC.setPower(0);
+                }
+            }
                 if (dropperLimit.isPressed()) {
                     if (!gamepad1.right_bumper && gamepad1.left_bumper) {
                         dropperDC.setPower(0);
                     }
                 }
                 if (!dropperLimit.isPressed()) {
-                    if (!gamepad1.right_bumper && gamepad1.left_bumper) {
-                        dropperDC.setPower(-0.4);
+                    if (dropperDC.getCurrentPosition() > 300) {
+                        if (!gamepad1.right_bumper && gamepad1.left_bumper) {
+                            dropperDC.setPower(-1);
+                        }
+                    }
+                    if (dropperDC.getCurrentPosition() <= 300) {
+                        if (!gamepad1.right_bumper && gamepad1.left_bumper) {
+                            dropperDC.setPower(-0.2);
+                        }
                     }
                 }
                 if (!gamepad1.left_bumper && !gamepad1.right_bumper) {
@@ -537,6 +643,14 @@ public class MultithreadingTest extends LinearOpMode {
                 }
                 if (!gamepad2.dpad_up && !gamepad2.dpad_down) {
                     latchingDC.setPower(0);
+                }
+
+                /**cExit && dExit Monitoring*/
+                if (gamepad1.y) {
+                    dExit = true;
+                }
+                if (gamepad2.left_stick_button) {
+                    cExit = true;
                 }
 
             }

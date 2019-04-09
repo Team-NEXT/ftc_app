@@ -13,6 +13,7 @@ public class Encoder extends LinearOpMode{
 
     //Gamepad 1
 
+    private DcMotor yAxisDC;
     private DcMotor motorFrontRight;
 //    private DcMotor motorBackRight;
 
@@ -22,14 +23,14 @@ public class Encoder extends LinearOpMode{
     @Override
     public void runOpMode() throws InterruptedException {
 
+        yAxisDC = hardwareMap.dcMotor.get("yAxisEncoder");
         motorFrontRight = hardwareMap.dcMotor.get("frontRight");
-//        motorBackRight = hardwareMap.dcMotor.get("backRight");
 
+        yAxisDC.setMode(STOP_AND_RESET_ENCODER);
         motorFrontRight.setMode(STOP_AND_RESET_ENCODER);
-//        motorBackRight.setMode(STOP_AND_RESET_ENCODER);
 
+        yAxisDC.setMode(RUN_USING_ENCODER);
         motorFrontRight.setMode(RUN_USING_ENCODER);
-//        motorBackRight.setMode(RUN_USING_ENCODER);
 
 //        x_pos = 0;
         y_pos = 0;
@@ -39,7 +40,7 @@ public class Encoder extends LinearOpMode{
         while (opModeIsActive()){
 
 //            x_pos = motorBackRight.getCurrentPosition();
-            y_pos = motorFrontRight.getCurrentPosition();
+            y_pos = yAxisDC.getCurrentPosition();
 
 //            if (gamepad1.x) {
 //                motorBackRight.setMode(STOP_AND_RESET_ENCODER);
@@ -47,13 +48,14 @@ public class Encoder extends LinearOpMode{
 //            }
 
             if (gamepad1.y) {
-                motorFrontRight.setMode(STOP_AND_RESET_ENCODER);
-                motorFrontRight.setMode(RUN_USING_ENCODER);
+                yAxisDC.setMode(STOP_AND_RESET_ENCODER);
+                yAxisDC.setMode(RUN_USING_ENCODER);
             }
 
 
 
 //            telemetry.addData("x = ", x_pos);
+            telemetry.addData("FR = ", motorFrontRight.getCurrentPosition());
             telemetry.addData("y = ", y_pos);
             telemetry.update();
 

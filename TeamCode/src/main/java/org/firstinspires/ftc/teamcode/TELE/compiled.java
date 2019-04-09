@@ -353,7 +353,7 @@ public class compiled extends LinearOpMode {
 
                 sweeperServo.setPower(0);
 
-                while (collectorDC.getCurrentPosition()>20) {
+                while (collectorDC.getCurrentPosition()>200) {
                     collectorDC.setPower(-0.8);
                 }
 
