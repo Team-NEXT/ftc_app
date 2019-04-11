@@ -39,7 +39,7 @@ public class MultithreadingTest extends LinearOpMode {
 
     private double cPos;
     private double cMid;
-    private double cInitial;
+    private double cDrop;
     private double cOpen;
     private double cClose;
 
@@ -112,9 +112,9 @@ public class MultithreadingTest extends LinearOpMode {
 
 //        cExtPos = collectorDC.getCurrentPosition();
         cOpen = 0.9;
-        cClose = 0.03;
+        cClose = 0.05;
         cMid = 0.6;
-        cInitial = 0.01;
+        cDrop = 0.25;
 
         //DROPPING
         dropperDC = hardwareMap.dcMotor.get("dropDC");
@@ -137,36 +137,8 @@ public class MultithreadingTest extends LinearOpMode {
         yUp = 0.59;
 
         //INITIALIZATION
-        dropperServo.setPosition(dLoad);
-        collectorServo.setPosition(cInitial);
         xServo.setPosition(xUp);
         yServo.setPosition(yUp);
-        while (collectorServo.getPosition() > cMid) {
-            cPos = collectorServo.getPosition();
-            cPos -= 0.07;
-            collectorServo.setPosition(cPos);
-        }
-        if (cPos < cMid) {
-            collectorServo.setPosition(cMid);
-        }
-        while (!collectorLimit.isPressed()) {
-            collectorDC.setPower(-0.7);
-        }
-        collectorDC.setPower(0);
-        collectorDC.setMode(STOP_AND_RESET_ENCODER);
-        collectorDC.setMode(RUN_USING_ENCODER);
-        while (collectorServo.getPosition() >= cClose) {
-            cPos = collectorServo.getPosition();
-            cPos -= 0.07;
-            collectorServo.setPosition(cPos);
-        }
-        if (cPos < cClose) {
-            collectorServo.setPosition(cClose);
-        }
-        while (collectorDC.getCurrentPosition() < 235) {
-            collectorDC.setPower(0.4);
-        }
-        collectorDC.setPower(0);
         flapServo.setPosition(FO);
 
         Thread driveThread = new DriveThread();
@@ -402,12 +374,12 @@ public class MultithreadingTest extends LinearOpMode {
                         collectorDC.setPower(0);
                     }
                 }
-                if (!collectorLimit.isPressed() || collectorDC.getCurrentPosition() > 262) {
+                if (!collectorLimit.isPressed()) {
                     if (gamepad2.a && !gamepad2.b) {
                         collectorDC.setPower(-1);
                     }
                 }
-                if (collectorLimit.isPressed() || collectorDC.getCurrentPosition() <= 262) {
+                if (collectorLimit.isPressed()) {
                     if (gamepad2.a && !gamepad2.b) {
                         collectorDC.setPower(0);
                     }
@@ -441,21 +413,16 @@ public class MultithreadingTest extends LinearOpMode {
                         collectorDC.setPower(-1);
                     }
 
-                    sweeperServo.setPower(0);
+                   // sweeperServo.setPower(0);
 
                     while (collectorDC.getCurrentPosition() <= 400 && !collectorLimit.isPressed() && !cExit) {
-                        collectorDC.setPower(-0.3);
+                        collectorDC.setPower(-0.4);
                     }
 
                     collectorDC.setPower(0);
 
                     collectorDC.setMode(STOP_AND_RESET_ENCODER);
                     collectorDC.setMode(RUN_USING_ENCODER);
-
-                    while (collectorDC.getCurrentPosition() <= 180) {
-                        collectorDC.setPower(0.4);
-                    }
-                    collectorDC.setPower(0);
 
                     while (collectorServo.getPosition() >= cClose && !cExit) {
                         cPos = collectorServo.getPosition();
@@ -550,6 +517,14 @@ public class MultithreadingTest extends LinearOpMode {
                     dExit = false;
                     dropperDC.setMode(STOP_AND_RESET_ENCODER);
                     dropperDC.setMode(RUN_USING_ENCODER);
+                    while (collectorServo.getPosition() > cDrop && !dExit) {
+                        cPos = collectorServo.getPosition();
+                        cPos -= 0.07;
+                        collectorServo.setPosition(cPos);
+                    }
+                    if (cPos < cDrop) {
+                        collectorServo.setPosition(cDrop);
+                    }
                     while (dropperDC.getCurrentPosition() < 950 && !dExit) {
                         dropperDC.setPower(1);
                     }

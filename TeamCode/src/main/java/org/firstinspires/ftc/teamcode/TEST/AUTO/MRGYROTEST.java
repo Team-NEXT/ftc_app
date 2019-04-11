@@ -38,10 +38,13 @@ public class MRGYROTEST extends LinearOpMode{
     public void runOpMode() throws InterruptedException {
 
         //DRIVE
-        motorFrontRight = hardwareMap.dcMotor.get("FR");
-        motorBackRight = hardwareMap.dcMotor.get("BR");
-        motorFrontLeft = hardwareMap.dcMotor.get("FL");
-        motorBackLeft = hardwareMap.dcMotor.get("BL");
+        motorFrontLeft = hardwareMap.dcMotor.get("frontLeft");
+        motorBackLeft = hardwareMap.dcMotor.get("backLeft");
+        motorFrontRight = hardwareMap.dcMotor.get("frontRight");
+        motorBackRight = hardwareMap.dcMotor.get("backRight");
+
+        motorFrontRight.setDirection(REVERSE);
+        motorBackRight.setDirection(REVERSE);
 
         //GYRO
         mrgyro = hardwareMap.get(ModernRoboticsI2cGyro.class, "gyro");
@@ -65,23 +68,50 @@ public class MRGYROTEST extends LinearOpMode{
 
         /**AUTO CODE*/
 
-        AXISLEFT90(90, 0.5);
+        GYROAXISLEFT(85, 0.00582, 1200);
+        Thread.sleep(10000);
 
     }
 
     /**METHODS*/
 
-    public void AXISLEFT90 (double targetAngle, double power) {
+    public void GYROAXISLEFT (double targetHeading, double multiplicationFactor, double maxT) {
 
         mrgyro.resetZAxisIntegrator();
 
+        double error, correction;
+
 //        inRange = false;
 
-        while (mrgyro.getIntegratedZValue() < 90) {
-                motorFrontRight.setPower(power);
-                motorFrontLeft.setPower(-power);
-                motorBackLeft.setPower(-power);
-                motorBackRight.setPower(power);
+        float gTimeStart = System.currentTimeMillis();
+
+        while ((mrgyro.getIntegratedZValue() < (targetHeading-1)) && ((System.currentTimeMillis() - gTimeStart) < maxT)) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            correction = error * multiplicationFactor;
+
+//            if (error > 0) {
+//                //AXIS LEFT
+//                motorFrontRight.setPower(correction);
+//                motorFrontLeft.setPower(-correction);
+//                motorBackLeft.setPower(-correction);
+//                motorBackRight.setPower(correction);
+//            } else if (error < 0) {
+//                //AXIS RIGHT
+//                motorFrontRight.setPower(-correction);
+//                motorFrontLeft.setPower(correction);
+//                motorBackLeft.setPower(correction);
+//                motorBackRight.setPower(-correction);
+//            } else {
+//                motorFrontRight.setPower(0);
+//                motorFrontLeft.setPower(0);
+//                motorBackLeft.setPower(0);
+//                motorBackRight.setPower(0);
+//            }
+
+            motorFrontRight.setPower(correction);
+            motorFrontLeft.setPower(-correction);
+            motorBackLeft.setPower(-correction);
+            motorBackRight.setPower(correction);
 
             telemetry.addData("FR", motorFrontRight.getPower());
             telemetry.addData("BR", motorBackRight.getPower());
@@ -90,6 +120,11 @@ public class MRGYROTEST extends LinearOpMode{
             telemetry.addData("z: ", mrgyro.getIntegratedZValue());
             telemetry.update();
         }
+
+        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         motorFrontRight.setPower(0);
         motorFrontLeft.setPower(0);

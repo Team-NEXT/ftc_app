@@ -24,7 +24,7 @@ import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 
-@Autonomous(name = "MThread Crater", group = "final")
+@Autonomous(name = "MT - Crater", group = "final")
 
 public class multithreadedCrater extends LinearOpMode {
 
@@ -225,23 +225,38 @@ public class multithreadedCrater extends LinearOpMode {
 
         Thread ultThread = new UltThread();
         Thread imgThread = new ImgThread();
+        Thread encoderThread = new EncoderThread();
 
         waitForStart();
 
         ultThread.start();
         imgThread.start();
+        encoderThread.start();
 
         /**CODE AFTER STARTING*/
 
-        while (opModeIsActive() && !loopComplete) {
+        while (!loopComplete) {
             telemetry.addLine("AutoRunning");
             telemetry.update();
         }
 
         ultThread.interrupt();
         imgThread.interrupt();
+        encoderThread.interrupt();
 
 //        COLLECTORCONTRACT(0.8);
+    }
+
+    private class EncoderThread extends Thread {
+        public EncoderThread() {
+            this.setName("EncoderThread");
+        }
+        @Override
+        public void run() {
+            while (!isInterrupted()) {
+
+            }
+        }
     }
 
     private class ImgThread extends Thread {
@@ -283,9 +298,7 @@ public class multithreadedCrater extends LinearOpMode {
 
                 /**IMAGE RECOGNITION*/
                 timer.reset();
-
                 detect = true;
-
                 while (!isStopRequested() && !detectionComplete)  {
                     telemetry.addData("calibrating", "%s", Math.round(timer.seconds())%2==0 ? "|.." : "..|");
                     telemetry.update();

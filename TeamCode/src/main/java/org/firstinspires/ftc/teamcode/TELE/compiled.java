@@ -270,6 +270,7 @@ public class compiled extends LinearOpMode {
             /**COLLECTOR*/
 
             telemetry.addData("collector: ", collectorDC.getCurrentPosition());
+            telemetry.update();
 
             if (gamepad2.y && !gamepad2.x && !gamepad2.b && (gamepad2.right_trigger < 0.1)) {
 //                startTime = System.currentTimeMillis();
