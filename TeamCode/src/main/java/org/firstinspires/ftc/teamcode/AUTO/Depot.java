@@ -1,40 +1,39 @@
 package org.firstinspires.ftc.teamcode.AUTO;
 
+import android.view.Display;
+
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsTouchSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Gyroscope;
+import com.qualcomm.robotcore.hardware.IntegratingGyroscope;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.vuforia.ar.pl.DebugLog;
 
-//OpenCV
-import com.disnodeteam.dogecv.CameraViewDisplay;
-import com.disnodeteam.dogecv.DogeCV;
-import com.disnodeteam.dogecv.detectors.roverrukus.GoldAlignDetector;
-import com.disnodeteam.dogecv.detectors.roverrukus.SamplingOrderDetector;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-import org.firstinspires.ftc.robotcore.external.navigation.Axis;
-import org.opencv.core.Mat;
-import org.opencv.video.BackgroundSubtractor;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 
-@Autonomous(name = "Depot", group = "auto")
+@Autonomous(name = "Depot", group = "final")
 
-public class Depot extends LinearOpMode{
-
-    private GoldAlignDetector detector;
+public class Depot extends LinearOpMode {
 
     //DRIVE
     private DcMotor motorFrontLeft;
     private DcMotor motorBackLeft;
     private DcMotor motorFrontRight;
     private DcMotor motorBackRight;
+
+    private DcMotor yAxisDC;
 
     //LATCHING
     private DcMotor latchingDC;
@@ -43,15 +42,23 @@ public class Depot extends LinearOpMode{
 
     //COLLECTOR
     private DcMotor collectorDC;
-    private DcMotor sweeperDC;
+    private CRServo sweeperServo;
     private Servo collectorServo;
-    private ModernRoboticsTouchSensor collectorServoLimit;
-    private ModernRoboticsTouchSensor collectorExtLimit;
+    private Servo flapServo;
+    private ModernRoboticsTouchSensor collectorLimit;
+
+    private static double FO = 0.55, FC = 0.18;
 
     private double cPos;
     private double cMid;
+    private double cInitial;
     private double cOpen;
+    private double cMarker;
     private double cClose;
+    private double cDrop;
+
+    private static double singleTicks = 13;
+    private static double degree = 34;
 
 //    private double cSpeed;
 //    private double cExtPos;
@@ -59,7 +66,7 @@ public class Depot extends LinearOpMode{
     //DROPPING
     private DcMotor dropperDC;
     private Servo dropperServo;
-    private ModernRoboticsTouchSensor dropperExtLimit;
+    private ModernRoboticsTouchSensor dropperLimit;
 
     private double dLoad;
     private double dUnload;
@@ -70,30 +77,23 @@ public class Depot extends LinearOpMode{
     private Servo yServo;
 
     private double xUp;
-    private double yUp;
     private double xDown;
+    private double yUp;
     private double yDown;
 
-    private int mineralPos;
+    private ElapsedTime timer = new ElapsedTime();
 
-//    private static double x_encoder;
-//    private static double y_encoder;
+    private ElapsedTime gyroTimer = new ElapsedTime();
 
-    private static double rampDownFactor = 0;
-    private static double rampTicks = 0;
+    private double startTime;
 
-    private static double targetTicks = 0;
-    private static final double finalTicks = 2400;
-    private static final double singleTicks = 16;
+    private static IntegratingGyroscope gyro;
+    private static ModernRoboticsI2cGyro mrgyro;
 
-    private static final double wheelDiameter = 48;
-
-    private static final double degree = 42;
-
-    ElapsedTime timer = new ElapsedTime();
+    int mineralPos;
 
     @Override
-    public void runOpMode() throws InterruptedException{
+    public void runOpMode() throws InterruptedException {
 
         //DRIVING
         motorFrontLeft = hardwareMap.dcMotor.get("frontLeft");
@@ -103,6 +103,8 @@ public class Depot extends LinearOpMode{
 
         motorFrontRight.setDirection(REVERSE);
         motorBackRight.setDirection(REVERSE);
+
+        yAxisDC = hardwareMap.dcMotor.get("yAxisEncoder");
 
 //        motorFrontRight.setMode(STOP_AND_RESET_ENCODER);
 //        motorFrontLeft.setMode(STOP_AND_RESET_ENCODER);
@@ -116,23 +118,20 @@ public class Depot extends LinearOpMode{
 
         //LATCHING
         latchingDC = hardwareMap.dcMotor.get("latchingDC");
-        latchUpperLimit = hardwareMap.get(ModernRoboticsTouchSensor.class, "latchingU");
-        latchLowerLimit = hardwareMap.get(ModernRoboticsTouchSensor.class, "latchingL");
-        latchingDC.setMode(STOP_AND_RESET_ENCODER);
-        latchingDC.setMode(RUN_USING_ENCODER);
+        latchingDC.setDirection(REVERSE);
+        latchUpperLimit = hardwareMap.get(ModernRoboticsTouchSensor.class, "LD");
+        latchLowerLimit = hardwareMap.get(ModernRoboticsTouchSensor.class, "LU");
 
         //COLLECTOR
         collectorDC = hardwareMap.dcMotor.get("collectDC");
-        sweeperDC = hardwareMap.dcMotor.get("sweeperDC");
+        sweeperServo = hardwareMap.crservo.get("sweepServo");
+        sweeperServo.setDirection(REVERSE);
+        flapServo = hardwareMap.servo.get("flapServo");
         collectorServo = hardwareMap.servo.get("cServo");
-        collectorServoLimit = hardwareMap.get(ModernRoboticsTouchSensor.class, "collectorExt");
-        collectorExtLimit = hardwareMap.get(ModernRoboticsTouchSensor.class, "collectorServo");
+        collectorLimit = hardwareMap.get(ModernRoboticsTouchSensor.class, "C");
 
-        sweeperDC.setDirection(REVERSE);
-        collectorDC.setDirection(REVERSE);
-
-        sweeperDC.setMode(STOP_AND_RESET_ENCODER);
-        sweeperDC.setMode(RUN_USING_ENCODER);
+        //sweeperDC.setDirection(REVERSE);
+        //collectorDC.setDirection(REVERSE);
 
         collectorDC.setMode(STOP_AND_RESET_ENCODER);
         collectorDC.setMode(RUN_USING_ENCODER);
@@ -140,273 +139,184 @@ public class Depot extends LinearOpMode{
 //        cSpeed = 0.07;
 
 //        cExtPos = collectorDC.getCurrentPosition();
-        cOpen = 0.92;
-        cClose = 0.12;
-        cMid = 0.8;
+        cOpen = 0.9;
+        cMid = 0.6;
+        cClose = 0.03;
+        cInitial = 0.01;
+        cDrop = 0.25;
+        cMarker = 0.7;
 
         //DROPPING
         dropperDC = hardwareMap.dcMotor.get("dropDC");
         dropperServo = hardwareMap.servo.get("dServo");
-        dropperExtLimit = hardwareMap.get(ModernRoboticsTouchSensor.class, "dropper");
+        dropperLimit = hardwareMap.get(ModernRoboticsTouchSensor.class, "D");
 
-        dLoad = 0.64;
-        dUnload = 0.3;
+        dLoad = 0.71;
+        dUnload = 0.29;
+
+        dropperDC.setDirection(REVERSE);
+
+        dropperDC.setMode(STOP_AND_RESET_ENCODER);
+        dropperDC.setMode(RUN_USING_ENCODER);
 
         //DRIVE ENCODERS
         xServo = hardwareMap.servo.get("xServo");
         yServo = hardwareMap.servo.get("yServo");
 
-        xUp = 0.21;//0.12//0.15
-        yUp = 0.38;
-        xDown = 0.79;
-        yDown = 0.13;//0.15//0.07
-
+        xUp = 0.4;
+        xDown = 0.64;
+        yUp = 0.59;
+        yDown = 0.39;
 
         //INITIALIZATION
         dropperServo.setPosition(dLoad);
-        collectorServo.setPosition(cClose);
+
         xServo.setPosition(xUp);
         yServo.setPosition(yUp);
+        flapServo.setPosition(FC);
 
-        /**DetectorINIT*/
-        telemetry.addData("Status", "DogeCV 2018.0 - Gold Align Example");
+        collectorDC.setPower(0);
+        while(!collectorLimit.isPressed()) {
+            collectorDC.setPower(-0.7);
+            telemetry.addLine("collector initializing");
+            telemetry.update();
+        }
+        collectorDC.setPower(0);
 
-        // Set up detector
-        detector = new GoldAlignDetector(); // Create detector
-        detector.init(hardwareMap.appContext, CameraViewDisplay.getInstance()); // Initialize it with the app context and camera
-        detector.useDefaults(); // Set detector to use default settings
+        collectorServo.setPosition(cInitial);
 
-        // Optional tuning
-        detector.alignSize = 210; // How wide (in pixels) is the range in which the gold object will be aligned. (Represented by green bars in the preview)
-        detector.alignPosOffset = 0; // How far from center frame to offset this alignment zone.
-        detector.downscale = 0.4; // How much to downscale the input frames
+        telemetry.addLine("initialized");
+        telemetry.update();
+        //GYRO
 
-        detector.areaScoringMethod = DogeCV.AreaScoringMethod.MAX_AREA; // Can also be PERFECT_AREA
-        detector.perfectAreaScorer.perfectArea = 10000; // if using PERFECT_AREA scoring
-        detector.maxAreaScorer.weight = 0.005; //
+        mrgyro = hardwareMap.get(ModernRoboticsI2cGyro.class, "gyro");
+        gyro = (IntegratingGyroscope) mrgyro;
 
-        detector.ratioScorer.weight = 5; //
-        detector.ratioScorer.perfectRatio = 1.0; // Ratio adjustment
+        telemetry.log().add("Gyro Calibrating. Do Not Move!");
+        mrgyro.calibrate();
 
-        detector.enable(); // Start the detector!
+        // Wait until the gyro calibration is complete
+        timer.reset();
+        while (!isStopRequested() && mrgyro.isCalibrating())  {
+            telemetry.addData("calibrating", "%s", Math.round(timer.seconds())%2==0 ? "|.." : "..|");
+            telemetry.update();
+            sleep(50);
+        }
 
-//        mineralPos = 1;
+        telemetry.log().clear(); telemetry.log().add("Gyro Calibrated. Press Start.");
+        telemetry.clear(); telemetry.update();
 
-        /**START*/
+        mineralPos = 2;
+
         waitForStart();
 
-        /*CODE AFTER STARTING*/
+        /**CODE AFTER STARTING*/
 
-        LATCHING(1);
+//        LATCHING(1);
+
+        Thread.sleep(3000);
 
         yServo.setPosition(yDown);
         xServo.setPosition(xDown);
+
+        BACKWARD(38, 0.25);
 
         Thread.sleep(100);
 
         /**CODE FOR IMAGE RECOGNITION*/
 
-        //getaligned&isfound
-
-        if (detector.isFound()) {
-            if (detector.getAligned()) {
-                mineralPos = 2;
-                telemetry.addData("found and aligned", mineralPos);
-                telemetry.addData("mineralPos: " , mineralPos);
-                telemetry.update();
-            }
-            else {
-                mineralPos = 3;
-                telemetry.addData("found", mineralPos);
-                telemetry.addData("mineralPos: " , mineralPos);
-                telemetry.update();
-            }
-        }
-        else {
-            mineralPos = 1;
-            telemetry.addData("none", mineralPos);
-            telemetry.addData("mineralPos: " , mineralPos);
-            telemetry.update();
-        }
-
-        BACKWARD(50, 0.2);
-
-        Thread.sleep(100);
+        SWAYRIGHT(320);
 
         if (mineralPos == 1) {
-
-            SWAYRIGHT(240);
-
-            FORWARD(400, 0.4);
-
-            AXISRIGHT(0.4, 112);
-
-            FORWARD(600, 0.5);
-
-            CSERVODOWN(0.02);
-
-            SWEEPER(-1);
-            Thread.sleep(2000);
-            SWEEPER(0);
-
-            Thread.sleep(100);
-
-            CSERVOUP(0.6);
-
-            Thread.sleep(100);
-
-            AXISRIGHT(0.4, 10);
-
-            BACKWARD(500, 0.5);
-
-            BACKWARD(600, 0.5);
-
-//            BACKWARD(100, 0.5);
-
-//            dropperDC.setMode(STOP_AND_RESET_ENCODER);
-//            dropperDC.setMode(RUN_USING_ENCODER);
-//
-//            while (Math.abs(dropperDC.getCurrentPosition()) < 1000) {
-//                dropperDC.setPower(1);
-//            }
-//            dropperDC.setPower(0);
 
         }
 
         if (mineralPos == 2) {
-
-            SWAYRIGHT(240); //distance = 90
-
-            Thread.sleep(200);
-
-            AXISRIGHT(0.3, 90);
-
-            Thread.sleep(100);
-
-            FORWARD(500, 0.6);
-
-            CSERVODOWN(0.02);
-
-            SWEEPER(-1);
-            Thread.sleep(2000);
+            GYROAXISRIGHT(-85, 0.006, 900);
+            collectorDC.setPower(0);
+            collectorDC.setMode(STOP_AND_RESET_ENCODER);
+            collectorDC.setMode(RUN_USING_ENCODER);
+            while (collectorDC.getCurrentPosition() < 1800) {
+                collectorDC.setPower(1);
+            }
+            collectorDC.setPower(0);
+            while (collectorServo.getPosition() < cMarker) {
+                cPos = collectorServo.getPosition();
+                cPos += 0.05;
+                collectorServo.setPosition(cPos);
+            }
+            if (cPos > cMarker) {
+                collectorServo.setPosition(cMarker);
+            }
+            sweeperServo.setPower(-1);
+            Thread.sleep(700);
+            sweeperServo.setPower(0);
+            while (collectorDC.getCurrentPosition() > 500) {
+                collectorDC.setPower(-1);
+            }
+            while (!collectorLimit.isPressed()) {
+                collectorDC.setPower(-0.4);
+            }
+            collectorDC.setPower(0);
+            BACKWARD(50, 0.3);
+            while (collectorServo.getPosition() < cOpen) {
+                cPos = collectorServo.getPosition();
+                cPos += 0.05;
+                collectorServo.setPosition(cPos);
+            }
+            if (cPos > cOpen) {
+                collectorServo.setPosition(cOpen);
+            }
+            SWEEPER(1);
+            FORWARD(200, 0.3);
+            Thread.sleep(700);
+            while (collectorServo.getPosition() > cClose) {
+                cPos = collectorServo.getPosition();
+                cPos -= 0.05;
+                collectorServo.setPosition(cPos);
+            }
+            if (cPos < cClose) {
+                collectorServo.setPosition(cClose);
+            }
+            flapServo.setPosition(FO);
+            BACKWARD(50, 0.3);
+            Thread.sleep(300);
             SWEEPER(0);
-
-            Thread.sleep(100);
-
-            CSERVOUP(0.6);
-
-            Thread.sleep(100);
-
-            BACKWARD(450, 0.4);
-            BACKWARD(100, 0.3);
-
-
-//            Thread.sleep(100);
-//
-            AXISLEFT(90, 0.4);
-//
-//            Thread.sleep(100);
-//
-            FORWARD(680, 0.4);
-//
-//            Thread.sleep(100);
-
-            AXISLEFT(32, 0.4);
-//
-//            Thread.sleep(100);
-//
-//            COLLECTOREXPAND(1000, 0.8);
-
-            FORWARD(300, 0.5);
-
-            CSERVODOWN(0.02);
-
+            DROPlow();
+            Thread.sleep(200);
+            BACKWARD(50, 0.3);
+            GYROAXISLEFT(85, 0.006, 900);
+            RAMPFORWARD(500, 0.1, 0.1, 0.5, 0.05, 0.06);
         }
 
         if (mineralPos == 3) {
 
-            SWAYRIGHT(250);
-
-            BACKWARD(430, 0.4);
-
-            AXISRIGHT(0.4, 45);
-
-            FORWARD(500, 0.5);
-
-            CSERVODOWN(0.02);
-
-            SWEEPER(-1);
-            Thread.sleep(2000);
-            SWEEPER(0);
-
-            Thread.sleep(100);
-
-            CSERVOUP(0.6);
-
-            Thread.sleep(100);
-
-            BACKWARD(400, 0.4);
-            BACKWARD(100, 0.3);
-
-            AXISLEFT(90, 0.4);
-
-            FORWARD(1050, 0.5);
-
-            AXISLEFT(24, 0.4);
-
-            FORWARD(450, 0.7);
-
-            CSERVODOWN(0.02);
-
         }
-
-//        Thread.sleep(100);
 //
-//        AXISLEFT(46, 0.4);
-//
-//        Thread.sleep(100);
-//
-//        FORWARD(150, 0.5);
-//
-//        Thread.sleep(100);
-
-//        COLLECTOREXPAND(1000, 0.8);
-
-//        CSERVODOWN(0.02);
-
-//        SWEEPER(1);
-//        Thread.sleep(2000);
-//        SWEEPER(0);
-
-//        CSERVOUP(0.07);
-
-//        collectorDC.setPower(-0.2);
-
-//        BACKWARD(800, 0.6);
-
 //        COLLECTORCONTRACT(0.8);
-
+//
     }
-
+//
     /**Methods*/
     public void FORWARD (int mmDistance, double power) {
 
-        targetTicks = mmDistance * singleTicks;
+        double targetTicks = mmDistance * singleTicks;
 
-        latchingDC.setMode(STOP_AND_RESET_ENCODER);
-        latchingDC.setMode(RUN_USING_ENCODER);
+        yAxisDC.setMode(STOP_AND_RESET_ENCODER);
+        yAxisDC.setMode(RUN_USING_ENCODER);
 
-        while ((targetTicks - 100) > Math.abs(latchingDC.getCurrentPosition())) {
+        while ((targetTicks - 100) > Math.abs(yAxisDC.getCurrentPosition())) {
             motorFrontRight.setPower(power);
-            motorBackRight.setPower(power);
             motorFrontLeft.setPower(power);
             motorBackLeft.setPower(power);
+            motorBackRight.setPower(power);
 
             telemetry.addData("FR", motorFrontRight.getPower());
             telemetry.addData("BR", motorBackRight.getPower());
             telemetry.addData("FL", motorFrontLeft.getPower());
             telemetry.addData("BL", motorBackLeft.getPower());
-            telemetry.addData("y: ", Math.abs(latchingDC.getCurrentPosition()));
+            telemetry.addData("y: ", Math.abs(yAxisDC.getCurrentPosition()));
+            telemetry.addData("target: ", (targetTicks-100));
             telemetry.update();
         }
 
@@ -417,8 +327,226 @@ public class Depot extends LinearOpMode{
 
     }
 
-//    public void COASTFORWARD (int mmDistance, double power) {
-//
+    public void cFORWARD (int mmDistance, double power) {
+
+        double targetTicks = mmDistance * singleTicks;
+
+        yAxisDC.setMode(STOP_AND_RESET_ENCODER);
+        yAxisDC.setMode(RUN_USING_ENCODER);
+
+        while ((targetTicks - 100) >= Math.abs(yAxisDC.getCurrentPosition())) {
+            motorFrontRight.setPower(power);
+            motorFrontLeft.setPower(power);
+            motorBackLeft.setPower(power);
+            motorBackRight.setPower(power);
+
+            telemetry.addData("FR", motorFrontRight.getPower());
+            telemetry.addData("BR", motorBackRight.getPower());
+            telemetry.addData("FL", motorFrontLeft.getPower());
+            telemetry.addData("BL", motorBackLeft.getPower());
+            telemetry.addData("y: ", Math.abs(yAxisDC.getCurrentPosition()));
+            telemetry.addData("target: ", (targetTicks-100));
+            telemetry.update();
+        }
+
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
+
+        double correctionTicks = yAxisDC.getCurrentPosition() - targetTicks;
+
+        if (Math.abs(yAxisDC.getCurrentPosition()) > (targetTicks+100)) {
+            telemetry.addLine("over");
+            telemetry.update();
+            yAxisDC.setMode(STOP_AND_RESET_ENCODER);
+            yAxisDC.setMode(RUN_USING_ENCODER);
+            while (Math.abs(yAxisDC.getCurrentPosition()) < correctionTicks-100) {
+                motorFrontRight.setPower(-0.15);
+                motorFrontLeft.setPower(-0.15);
+                motorBackLeft.setPower(-0.15);
+                motorBackRight.setPower(-0.15);
+            }
+        } else if (Math.abs(yAxisDC.getCurrentPosition()) < (targetTicks-100)) {
+            telemetry.addLine("under");
+            telemetry.update();
+            yAxisDC.setMode(STOP_AND_RESET_ENCODER);
+            yAxisDC.setMode(RUN_USING_ENCODER);
+            while (Math.abs(yAxisDC.getCurrentPosition()) < correctionTicks-100) {
+                motorFrontRight.setPower(0.15);
+                motorFrontLeft.setPower(0.15);
+                motorBackLeft.setPower(0.15);
+                motorBackRight.setPower(0.15);
+            }
+        } else {
+            telemetry.addLine("correct");
+            telemetry.update();
+            motorFrontRight.setPower(0);
+            motorFrontLeft.setPower(0);
+            motorBackLeft.setPower(0);
+            motorBackRight.setPower(0);
+        }
+        telemetry.addLine("stop");
+        telemetry.update();
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
+    }
+
+    public void RAMPFORWARD (int mmDistance, double startPower, double endPower, double maxPower, double increment, double decrement) {
+
+        double targetTicks = mmDistance * singleTicks;
+        double power = startPower;
+
+        yAxisDC.setMode(STOP_AND_RESET_ENCODER);
+        yAxisDC.setMode(RUN_USING_ENCODER);
+
+        while ((targetTicks - 100) > Math.abs(yAxisDC.getCurrentPosition())) {
+
+            if (Math.abs(yAxisDC.getCurrentPosition()) <= (targetTicks/2)) {
+                telemetry.addData("RUP", "");
+                if (power > maxPower) {
+                    power = maxPower;
+                } else {
+                    power += increment;
+                }
+            } else if (Math.abs(yAxisDC.getCurrentPosition()) >= (targetTicks/2)) {
+                telemetry.addData("RD", "");
+                if (power < endPower) {
+                    power = endPower;
+                } else {
+                    power -= decrement;
+                }
+            }
+
+            motorFrontRight.setPower(power);
+            motorFrontLeft.setPower(power);
+            motorBackLeft.setPower(power);
+            motorBackRight.setPower(power);
+
+            telemetry.addData("FR", motorFrontRight.getPower());
+            telemetry.addData("BR", motorBackRight.getPower());
+            telemetry.addData("FL", motorFrontLeft.getPower());
+            telemetry.addData("BL", motorBackLeft.getPower());
+            telemetry.addData("y: ", Math.abs(yAxisDC.getCurrentPosition()));
+            telemetry.update();
+        }
+
+        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
+
+    }
+
+    public void cRAMPFORWARD (int mmDistance, double startPower, double endPower, double maxPower, double increment, double decrement) {
+
+        double targetTicks = mmDistance * singleTicks;
+        double power = startPower;
+
+        yAxisDC.setMode(STOP_AND_RESET_ENCODER);
+        yAxisDC.setMode(RUN_USING_ENCODER);
+
+        while ((targetTicks - 100) > Math.abs(yAxisDC.getCurrentPosition())) {
+
+            if (Math.abs(yAxisDC.getCurrentPosition()) <= (targetTicks/2)) {
+                telemetry.addData("RUP", "");
+                if (power > maxPower) {
+                    power = maxPower;
+                } else {
+                    power += increment;
+                }
+            } else if (Math.abs(yAxisDC.getCurrentPosition()) >= (targetTicks/2)) {
+                telemetry.addData("RD", "");
+                if (power < endPower) {
+                    power = endPower;
+                } else {
+                    power -= decrement;
+                }
+            }
+
+            motorFrontRight.setPower(power);
+            motorFrontLeft.setPower(power);
+            motorBackLeft.setPower(power);
+            motorBackRight.setPower(power);
+
+            telemetry.addData("FR", motorFrontRight.getPower());
+            telemetry.addData("BR", motorBackRight.getPower());
+            telemetry.addData("FL", motorFrontLeft.getPower());
+            telemetry.addData("BL", motorBackLeft.getPower());
+            telemetry.addData("y: ", Math.abs(yAxisDC.getCurrentPosition()));
+            telemetry.update();
+        }
+
+        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
+
+        double correctionTicks = yAxisDC.getCurrentPosition() - targetTicks;
+
+        yAxisDC.setMode(STOP_AND_RESET_ENCODER);
+        yAxisDC.setMode(RUN_USING_ENCODER);
+
+        telemetry.addData("y: ", Math.abs(yAxisDC.getCurrentPosition()));
+        telemetry.addData("correctionticks: ", correctionTicks);
+        telemetry.update();
+
+//        if (Math.abs(yAxisDC.getCurrentPosition()) > (targetTicks+100)) {
+//            telemetry.addLine("over");
+//            telemetry.update();
+//            yAxisDC.setMode(STOP_AND_RESET_ENCODER);
+//            yAxisDC.setMode(RUN_USING_ENCODER);
+//            while (Math.abs(yAxisDC.getCurrentPosition()) < correctionTicks) {
+//                motorFrontRight.setPower(-0.2);
+//                motorFrontLeft.setPower(-0.2);
+//                motorBackLeft.setPower(-0.2);
+//                motorBackRight.setPower(-0.2);
+//            }
+//        } else if (Math.abs(yAxisDC.getCurrentPosition()) < (targetTicks-100)) {
+//            telemetry.addLine("under");
+//            telemetry.update();
+//            yAxisDC.setMode(STOP_AND_RESET_ENCODER);
+//            yAxisDC.setMode(RUN_USING_ENCODER);
+//            while (Math.abs(yAxisDC.getCurrentPosition()) < Math.abs(correctionTicks)) {
+//                motorFrontRight.setPower(0.2);
+//                motorFrontLeft.setPower(0.2);
+//                motorBackLeft.setPower(0.2);
+//                motorBackRight.setPower(0.2);
+//            }
+//        } else {
+//            telemetry.addLine("correct");
+//            telemetry.update();
+//            motorFrontRight.setPower(0);
+//            motorFrontLeft.setPower(0);
+//            motorBackLeft.setPower(0);
+//            motorBackRight.setPower(0);
+//        }
+        telemetry.addData("correctionTicks: ", correctionTicks);
+        telemetry.addData("y:", yAxisDC.getCurrentPosition());
+        telemetry.addLine("stop");
+        telemetry.update();
+        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
+
+    }
 //        targetTicks = mmDistance * singleTicks;
 //
 //        latchingDC.setMode(STOP_AND_RESET_ENCODER);
@@ -442,12 +570,12 @@ public class Depot extends LinearOpMode{
 
     public void BACKWARD (int mmDistance, double power) {
 
-        targetTicks = mmDistance * singleTicks;
+        double targetTicks = mmDistance * singleTicks;
 
-        latchingDC.setMode(STOP_AND_RESET_ENCODER);
-        latchingDC.setMode(RUN_USING_ENCODER);
+        yAxisDC.setMode(STOP_AND_RESET_ENCODER);
+        yAxisDC.setMode(RUN_USING_ENCODER);
 
-        while ((targetTicks-100) > Math.abs(latchingDC.getCurrentPosition())) {
+        while ((targetTicks-100) > Math.abs(yAxisDC.getCurrentPosition())) {
             motorFrontRight.setPower(-power);
             motorBackRight.setPower(-power);
             motorFrontLeft.setPower(-power);
@@ -457,7 +585,7 @@ public class Depot extends LinearOpMode{
             telemetry.addData("BR", motorBackRight.getPower());
             telemetry.addData("FL", motorFrontLeft.getPower());
             telemetry.addData("BL", motorBackLeft.getPower());
-            telemetry.addData("y: ", Math.abs(latchingDC.getCurrentPosition()));
+            telemetry.addData("y: ", Math.abs(yAxisDC.getCurrentPosition()));
             telemetry.update();
         }
 
@@ -470,12 +598,12 @@ public class Depot extends LinearOpMode{
 
     public void COASTBACKWARD (int mmDistance, double power) {
 
-        targetTicks = mmDistance * singleTicks;
+        double targetTicks = mmDistance * singleTicks;
 
-        latchingDC.setMode(STOP_AND_RESET_ENCODER);
-        latchingDC.setMode(RUN_USING_ENCODER);
+        yAxisDC.setMode(STOP_AND_RESET_ENCODER);
+        yAxisDC.setMode(RUN_USING_ENCODER);
 
-        while ((targetTicks-100) > Math.abs(latchingDC.getCurrentPosition())) {
+        while ((targetTicks-100) > Math.abs(yAxisDC.getCurrentPosition())) {
             motorFrontRight.setPower(-power);
             motorBackRight.setPower(-power);
             motorFrontLeft.setPower(-power);
@@ -485,7 +613,7 @@ public class Depot extends LinearOpMode{
             telemetry.addData("BR", motorBackRight.getPower());
             telemetry.addData("FL", motorFrontLeft.getPower());
             telemetry.addData("BL", motorBackLeft.getPower());
-            telemetry.addData("y: ", Math.abs(latchingDC.getCurrentPosition()));
+            telemetry.addData("y: ", Math.abs(yAxisDC.getCurrentPosition()));
             telemetry.update();
         }
 
@@ -493,22 +621,22 @@ public class Depot extends LinearOpMode{
 
     public void SWAYLEFT (int mmDistance) {
 
-        targetTicks = mmDistance * singleTicks;
+        double targetTicks = mmDistance * singleTicks;
 
-        sweeperDC.setMode(STOP_AND_RESET_ENCODER);
-        sweeperDC.setMode(RUN_USING_ENCODER);
+        latchingDC.setMode(STOP_AND_RESET_ENCODER);
+        latchingDC.setMode(RUN_USING_ENCODER);
 
-        while ((targetTicks-100) > Math.abs(sweeperDC.getCurrentPosition())) {
-            motorFrontRight.setPower(0.6);
+        while ((targetTicks-100) > Math.abs(latchingDC.getCurrentPosition())) {
+            motorFrontRight.setPower(0.4);
             motorBackRight.setPower(-0.4);
-            motorFrontLeft.setPower(-0.7);
-            motorBackLeft.setPower(0.8);
+            motorFrontLeft.setPower(-0.4);
+            motorBackLeft.setPower(0.4);
 
             telemetry.addData("FR", motorFrontRight.getPower());
             telemetry.addData("BR", motorBackRight.getPower());
             telemetry.addData("FL", motorFrontLeft.getPower());
             telemetry.addData("BL", motorBackLeft.getPower());
-            telemetry.addData("x: ", Math.abs(sweeperDC.getCurrentPosition()));
+            telemetry.addData("x: ", Math.abs(latchingDC.getCurrentPosition()));
             telemetry.update();
         }
 
@@ -518,34 +646,34 @@ public class Depot extends LinearOpMode{
         motorBackLeft.setPower(0);
 
     }
-
-    public void D2_SWAYLEFT (int mmDistance) {
-
-        targetTicks = mmDistance * singleTicks;
-
-        sweeperDC.setMode(STOP_AND_RESET_ENCODER);
-        sweeperDC.setMode(RUN_USING_ENCODER);
-
-        while ((targetTicks-100) > Math.abs(sweeperDC.getCurrentPosition())) {
-            motorFrontRight.setPower(0.5);
-            motorBackRight.setPower(-0.4);
-            motorFrontLeft.setPower(-0.7);
-            motorBackLeft.setPower(0.9);
-
-            telemetry.addData("FR", motorFrontRight.getPower());
-            telemetry.addData("BR", motorBackRight.getPower());
-            telemetry.addData("FL", motorFrontLeft.getPower());
-            telemetry.addData("BL", motorBackLeft.getPower());
-            telemetry.addData("x: ", Math.abs(sweeperDC.getCurrentPosition()));
-            telemetry.update();
-        }
-
-        motorFrontRight.setPower(0);
-        motorBackRight.setPower(0);
-        motorFrontLeft.setPower(0);
-        motorBackLeft.setPower(0);
-
-    }
+//
+//    public void C2_SWAYLEFT (int mmDistance) {
+//
+//        double targetTicks = mmDistance * singleTicks;
+//
+//        latchingDC.setMode(STOP_AND_RESET_ENCODER);
+//        latchingDC.setMode(RUN_USING_ENCODER);
+//
+//        while ((targetTicks-100) > Math.abs(latchingDC.getCurrentPosition())) {
+//            motorFrontRight.setPower(0.5);
+//            motorBackRight.setPower(-0.4);
+//            motorFrontLeft.setPower(-0.6);
+//            motorBackLeft.setPower(0.8);
+//
+//            telemetry.addData("FR", motorFrontRight.getPower());
+//            telemetry.addData("BR", motorBackRight.getPower());
+//            telemetry.addData("FL", motorFrontLeft.getPower());
+//            telemetry.addData("BL", motorBackLeft.getPower());
+//            telemetry.addData("x: ", Math.abs(latchingDC.getCurrentPosition()));
+//            telemetry.update();
+//        }
+//
+//        motorFrontRight.setPower(0);
+//        motorBackRight.setPower(0);
+//        motorFrontLeft.setPower(0);
+//        motorBackLeft.setPower(0);
+//
+//    }
 
 //    public void COASTSWAYLEFT (int mmDistance, double power) {
 //
@@ -572,31 +700,87 @@ public class Depot extends LinearOpMode{
 
     public void SWAYRIGHT (int mmDistance) {
 
-        targetTicks = mmDistance * singleTicks;
+        double targetTicks = mmDistance * singleTicks;
 
-        sweeperDC.setMode(STOP_AND_RESET_ENCODER);
-        sweeperDC.setMode(RUN_USING_ENCODER);
+        latchingDC.setMode(STOP_AND_RESET_ENCODER);
+        latchingDC.setMode(RUN_USING_ENCODER);
 
-        while ((targetTicks-100) > Math.abs(sweeperDC.getCurrentPosition())) {
-            motorFrontRight.setPower(-0.7);
+        while ((targetTicks-100) > Math.abs(latchingDC.getCurrentPosition())) {
+            motorFrontRight.setPower(-0.43);
             motorBackRight.setPower(0.4);
-            motorFrontLeft.setPower(0.7);
-            motorBackLeft.setPower(-0.8);
+            motorFrontLeft.setPower(0.43);
+            motorBackLeft.setPower(-0.4);
 
             telemetry.addData("FR", motorFrontRight.getPower());
             telemetry.addData("BR", motorBackRight.getPower());
             telemetry.addData("FL", motorFrontLeft.getPower());
             telemetry.addData("BL", motorBackLeft.getPower());
-            telemetry.addData("x: ", Math.abs(sweeperDC.getCurrentPosition()));
+            telemetry.addData("x: ", Math.abs(latchingDC.getCurrentPosition()));
             telemetry.update();
         }
 
-        motorFrontRight.setPower(0);
         motorBackRight.setPower(0);
-        motorFrontLeft.setPower(0);
+        motorFrontRight.setPower(0);
         motorBackLeft.setPower(0);
+        motorFrontLeft.setPower(0);
 
     }
+
+    public void SWAYRIGHT1 (int mmDistance) {
+
+        double targetTicks = mmDistance * singleTicks;
+
+        latchingDC.setMode(STOP_AND_RESET_ENCODER);
+        latchingDC.setMode(RUN_USING_ENCODER);
+
+        while ((targetTicks-100) > Math.abs(latchingDC.getCurrentPosition())) {
+            motorFrontRight.setPower(-0.45);
+            motorBackRight.setPower(0.4);
+            motorFrontLeft.setPower(0.45);
+            motorBackLeft.setPower(-0.4);
+
+            telemetry.addData("FR", motorFrontRight.getPower());
+            telemetry.addData("BR", motorBackRight.getPower());
+            telemetry.addData("FL", motorFrontLeft.getPower());
+            telemetry.addData("BL", motorBackLeft.getPower());
+            telemetry.addData("x: ", Math.abs(latchingDC.getCurrentPosition()));
+            telemetry.update();
+        }
+
+        motorBackRight.setPower(0);
+        motorFrontRight.setPower(0);
+        motorBackLeft.setPower(0);
+        motorFrontLeft.setPower(0);
+
+    }
+
+//    public void SWAYRIGHT2 (int mmDistance) {
+//
+//        targetTicks = mmDistance * singleTicks;
+//
+//        sweeperDC.setMode(STOP_AND_RESET_ENCODER);
+//        sweeperDC.setMode(RUN_USING_ENCODER);
+//
+//        while ((targetTicks-100) > Math.abs(sweeperDC.getCurrentPosition())) {
+//            motorFrontRight.setPower(-0.6);
+//            motorBackRight.setPower(0.4);
+//            motorFrontLeft.setPower(0.8);
+//            motorBackLeft.setPower(-0.8);
+//
+//            telemetry.addData("FR", motorFrontRight.getPower());
+//            telemetry.addData("BR", motorBackRight.getPower());
+//            telemetry.addData("FL", motorFrontLeft.getPower());
+//            telemetry.addData("BL", motorBackLeft.getPower());
+//            telemetry.addData("x: ", Math.abs(sweeperDC.getCurrentPosition()));
+//            telemetry.update();
+//        }
+//
+//        motorFrontRight.setPower(0);
+//        motorBackRight.setPower(0);
+//        motorFrontLeft.setPower(0);
+//        motorBackLeft.setPower(0);
+//
+//    }
 
     public void LATCHING (double power) {
         while (!latchUpperLimit.isPressed()) {
@@ -607,12 +791,12 @@ public class Depot extends LinearOpMode{
 
     public void AXISLEFT (double degrees, double power) {
 
-        targetTicks = degrees * degree;
+        double targetTicks = degrees * degree;
 
-        latchingDC.setMode(STOP_AND_RESET_ENCODER);
-        latchingDC.setMode(RUN_USING_ENCODER);
+        yAxisDC.setMode(STOP_AND_RESET_ENCODER);
+        yAxisDC.setMode(RUN_USING_ENCODER);
 
-        while ((targetTicks - 100) > Math.abs(latchingDC.getCurrentPosition())) {
+        while ((targetTicks - 100) > Math.abs(yAxisDC.getCurrentPosition())) {
             motorFrontRight.setPower(power);
             motorFrontLeft.setPower(-power);
             motorBackLeft.setPower(-power);
@@ -624,8 +808,13 @@ public class Depot extends LinearOpMode{
         telemetry.addData("BR: ", motorBackRight.getPower());
         telemetry.addData("FL: ", motorFrontLeft.getPower());
         telemetry.addData("BL: ", motorBackLeft.getPower());
-        telemetry.addData("y: ", Math.abs(latchingDC.getCurrentPosition()));
+        telemetry.addData("y: ", Math.abs(yAxisDC.getCurrentPosition()));
         telemetry.update();
+
+        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         motorFrontRight.setPower(0);
         motorFrontLeft.setPower(0);
@@ -636,12 +825,12 @@ public class Depot extends LinearOpMode{
 
     public void AXISRIGHT (double power, double degrees) {
 
-        targetTicks = degrees * degree;
+        double targetTicks = degrees * degree;
 
-        latchingDC.setMode(STOP_AND_RESET_ENCODER);
-        latchingDC.setMode(RUN_USING_ENCODER);
+        yAxisDC.setMode(STOP_AND_RESET_ENCODER);
+        yAxisDC.setMode(RUN_USING_ENCODER);
 
-        while ((targetTicks - 100) > Math.abs(latchingDC.getCurrentPosition())) {
+        while ((targetTicks - 100) > Math.abs(yAxisDC.getCurrentPosition())) {
             motorFrontRight.setPower(-power);
             motorFrontLeft.setPower(power);
             motorBackLeft.setPower(power);
@@ -657,12 +846,13 @@ public class Depot extends LinearOpMode{
 
     public void COLLECTOREXPAND (double limit, double power) {
 
+        //limit 1600 max
         collectorDC.setMode(STOP_AND_RESET_ENCODER);
         collectorDC.setMode(RUN_USING_ENCODER);
 
-        do {
+        while ((limit - 10) < Math.abs(collectorDC.getCurrentPosition())) {
             collectorDC.setPower(power);
-        } while (Math.abs(collectorDC.getCurrentPosition()) < limit);
+        }
 
         collectorDC.setPower(0);
 
@@ -673,7 +863,7 @@ public class Depot extends LinearOpMode{
         collectorDC.setMode(STOP_AND_RESET_ENCODER);
         collectorDC.setMode(RUN_USING_ENCODER);
 
-        while (!collectorExtLimit.isPressed()) {
+        while (!collectorLimit.isPressed()) {
             collectorDC.setPower(-power);
         }
 
@@ -697,7 +887,7 @@ public class Depot extends LinearOpMode{
 
     public void SWEEPER (double power) {
 
-        sweeperDC.setPower(power);
+        sweeperServo.setPower(power);
 
     }
 
@@ -861,5 +1051,427 @@ public class Depot extends LinearOpMode{
 //        motorBackLeft.setPower(0);
 //
 //    }
+
+//    public void GYRO_TANK (double targetHeading, double leftPower, double rightPower) {
+//        while (Math.abs(mrgyro.getIntegratedZValue()) < (targetHeading-5)) {
+//            motorFrontRight.setPower(rightPower);
+//            motorBackRight.setPower(rightPower);
+//            motorFrontLeft.setPower(leftPower);
+//            motorBackLeft.setPower(leftPower);
+//
+//            telemetry.addData("z: ", mrgyro.getIntegratedZValue());
+//            telemetry.update();
+//        }
+//        motorFrontRight.setPower(0);
+//        motorBackRight.setPower(0);
+//        motorFrontLeft.setPower(0);
+//        motorBackLeft.setPower(0);
+//    }
+
+    public void tank (double mm, double leftPower, double rightPower) {
+        double targetTicks = mm * singleTicks;
+        yAxisDC.setMode(STOP_AND_RESET_ENCODER);
+        yAxisDC.setMode(RUN_USING_ENCODER);
+        while (Math.abs(yAxisDC.getCurrentPosition()) < (targetTicks - 100)) {
+            motorFrontRight.setPower(rightPower);
+            motorFrontLeft.setPower(leftPower);
+            motorBackLeft.setPower(leftPower);
+            motorBackRight.setPower(rightPower);
+        }
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
+    }
+
+    public void motorpower (double mm, double fr, double br, double fl, double bl) {
+        double targetTicks = mm * singleTicks;
+        yAxisDC.setMode(STOP_AND_RESET_ENCODER);
+        yAxisDC.setMode(RUN_USING_ENCODER);
+        while (Math.abs(yAxisDC.getCurrentPosition()) < (targetTicks - 100)) {
+            motorFrontRight.setPower(fr);
+            motorFrontLeft.setPower(fl);
+            motorBackLeft.setPower(bl);
+            motorBackRight.setPower(br);
+        }
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
+    }
+
+    public void DROP() {
+        dropperDC.setMode(STOP_AND_RESET_ENCODER);
+        dropperDC.setMode(RUN_USING_ENCODER);
+        while (collectorServo.getPosition() > cDrop) {
+            cPos = collectorServo.getPosition();
+            cPos -= 0.07;
+            collectorServo.setPosition(cPos);
+        }
+        if (cPos < cDrop) {
+            collectorServo.setPosition(cDrop);
+        }
+        while (dropperDC.getCurrentPosition() < 1000) {
+            dropperDC.setPower(1);
+        }
+        dropperDC.setPower(0);
+        while (dropperServo.getPosition() > dUnload) {
+            dPos = dropperServo.getPosition();
+            dPos -= 0.04;
+            dropperServo.setPosition(dPos);
+        }
+        if (dPos < dUnload) {
+            dropperServo.setPosition(dUnload);
+        }
+        try {
+            Thread.sleep(750);
+        } catch (InterruptedException e) {
+
+        }
+        while (dropperServo.getPosition() > dLoad) {
+            dPos = dropperServo.getPosition();
+            dPos += 0.05;
+            dropperServo.setPosition(dPos);
+        }
+        if (dPos < dLoad) {
+            dPos = dLoad;
+            dropperServo.setPosition(dPos);
+        }
+        while (dropperDC.getCurrentPosition() >= 400) {
+            dropperDC.setPower(-1);
+        }
+        dropperDC.setPower(0);
+        while (!dropperLimit.isPressed()) {
+            dropperDC.setPower(-0.3);
+        }
+        dropperDC.setPower(0);
+    }
+
+    public void DROPlow() {
+        dropperDC.setMode(STOP_AND_RESET_ENCODER);
+        dropperDC.setMode(RUN_USING_ENCODER);
+        while (collectorServo.getPosition() > cDrop) {
+            cPos = collectorServo.getPosition();
+            cPos -= 0.07;
+            collectorServo.setPosition(cPos);
+        }
+        if (cPos < cDrop) {
+            collectorServo.setPosition(cDrop);
+        }
+        while (dropperDC.getCurrentPosition() < 900) {
+            dropperDC.setPower(1);
+        }
+        dropperDC.setPower(0);
+        while (dropperServo.getPosition() > dUnload) {
+            dPos = dropperServo.getPosition();
+            dPos -= 0.04;
+            dropperServo.setPosition(dPos);
+        }
+        if (dPos < dUnload) {
+            dropperServo.setPosition(dUnload);
+        }
+        try {
+            Thread.sleep(750);
+        } catch (InterruptedException e) {
+
+        }
+        while (dropperServo.getPosition() > dLoad) {
+            dPos = dropperServo.getPosition();
+            dPos += 0.05;
+            dropperServo.setPosition(dPos);
+        }
+        if (dPos < dLoad) {
+            dPos = dLoad;
+            dropperServo.setPosition(dPos);
+        }
+        while (dropperDC.getCurrentPosition() >= 400) {
+            dropperDC.setPower(-1);
+        }
+        dropperDC.setPower(0);
+        while (!dropperLimit.isPressed()) {
+            dropperDC.setPower(-0.3);
+        }
+        dropperDC.setPower(0);
+    }
+
+    public void halfDROP() {
+        dropperDC.setMode(STOP_AND_RESET_ENCODER);
+        dropperDC.setMode(RUN_USING_ENCODER);
+        while (collectorServo.getPosition() > cDrop) {
+            cPos = collectorServo.getPosition();
+            cPos -= 0.07;
+            collectorServo.setPosition(cPos);
+        }
+        if (cPos < cDrop) {
+            collectorServo.setPosition(cDrop);
+        }
+        while (dropperDC.getCurrentPosition() < 1000) {
+            dropperDC.setPower(1);
+        }
+        dropperDC.setPower(0);
+        while (dropperServo.getPosition() > dUnload) {
+            dPos = dropperServo.getPosition();
+            dPos -= 0.04;
+            dropperServo.setPosition(dPos);
+        }
+        if (dPos < dUnload) {
+            dropperServo.setPosition(dUnload);
+        }
+    }
+
+    public void halfDROP_low() {
+        dropperDC.setMode(STOP_AND_RESET_ENCODER);
+        dropperDC.setMode(RUN_USING_ENCODER);
+        while (collectorServo.getPosition() > cDrop) {
+            cPos = collectorServo.getPosition();
+            cPos -= 0.07;
+            collectorServo.setPosition(cPos);
+        }
+        if (cPos < cDrop) {
+            collectorServo.setPosition(cDrop);
+        }
+        while (dropperDC.getCurrentPosition() < 900) {
+            dropperDC.setPower(1);
+        }
+        dropperDC.setPower(0);
+        while (dropperServo.getPosition() > dUnload) {
+            dPos = dropperServo.getPosition();
+            dPos -= 0.04;
+            dropperServo.setPosition(dPos);
+        }
+        if (dPos < dUnload) {
+            dropperServo.setPosition(dUnload);
+        }
+    }
+
+    public void GYROAXISLEFT (double targetHeading, double multiplicationFactor, double maxT) {
+
+        mrgyro.resetZAxisIntegrator();
+
+        double error, correction;
+
+//        inRange = false;
+
+        boolean loopBreak = false;
+
+        float gTime = 0;
+        float gTimeStart = System.currentTimeMillis();
+
+        while ((mrgyro.getIntegratedZValue() < (targetHeading-1)) && !loopBreak) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            correction = error * multiplicationFactor;
+
+            gTime = System.currentTimeMillis() - gTimeStart;
+
+            if (gTime < maxT) {
+                if (error > 0) {
+                    //AXIS LEFT
+                    motorFrontRight.setPower(correction);
+                    motorFrontLeft.setPower(-correction);
+                    motorBackLeft.setPower(-correction);
+                    motorBackRight.setPower(correction);
+                } else if (error < 0) {
+                    //AXIS RIGHT
+                    motorFrontRight.setPower(-correction);
+                    motorFrontLeft.setPower(correction);
+                    motorBackLeft.setPower(correction);
+                    motorBackRight.setPower(-correction);
+                } else {
+                    motorFrontRight.setPower(0);
+                    motorFrontLeft.setPower(0);
+                    motorBackLeft.setPower(0);
+                    motorBackRight.setPower(0);
+                }
+            }
+
+//            if (maxT > gTime) {
+//                motorFrontRight.setPower(correction);
+//                motorFrontLeft.setPower(-correction);
+//                motorBackLeft.setPower(-correction);
+//                motorBackRight.setPower(correction);
+//            } else {
+//                loopBreak = true;
+//            }
+
+            telemetry.addData("FR", motorFrontRight.getPower());
+            telemetry.addData("BR", motorBackRight.getPower());
+            telemetry.addData("FL", motorFrontLeft.getPower());
+            telemetry.addData("BL", motorBackLeft.getPower());
+            telemetry.addData("z: ", mrgyro.getIntegratedZValue());
+            telemetry.update();
+        }
+
+        while (targetHeading != mrgyro.getIntegratedZValue()) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            if (error > 0) {
+                //AXIS LEFT
+                motorFrontRight.setPower(0.15);
+                motorFrontLeft.setPower(-0.15);
+                motorBackLeft.setPower(-0.15);
+                motorBackRight.setPower(0.15);
+            } else if (error < 0) {
+                //AXIS RIGHT
+                motorFrontRight.setPower(-0.15);
+                motorFrontLeft.setPower(0.15);
+                motorBackLeft.setPower(0.15);
+                motorBackRight.setPower(-0.15);
+            } else {
+                motorFrontRight.setPower(0);
+                motorFrontLeft.setPower(0);
+                motorBackLeft.setPower(0);
+                motorBackRight.setPower(0);
+            }
+        }
+
+        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
+
+    }
+
+    public void GYROAXISRIGHT (double targetHeading, double multiplicationFactor, double maxT) {
+
+        mrgyro.resetZAxisIntegrator();
+
+        double error, correction;
+
+//        inRange = false;
+
+        float gTime = 0;
+        float gTimeStart = System.currentTimeMillis();
+
+        while ((mrgyro.getIntegratedZValue() > (targetHeading+1)) && (gTime < maxT)) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            correction = error * multiplicationFactor;
+
+            gTime = System.currentTimeMillis() - gTimeStart;
+
+            if (error > 0) {
+                //AXIS LEFT
+                motorFrontRight.setPower(-correction);
+                motorFrontLeft.setPower(correction);
+                motorBackLeft.setPower(correction);
+                motorBackRight.setPower(-correction);
+            } else if (error < 0) {
+                //AXIS RIGHT
+                motorFrontRight.setPower(correction);
+                motorFrontLeft.setPower(-correction);
+                motorBackLeft.setPower(-correction);
+                motorBackRight.setPower(correction);
+            } else {
+                motorFrontRight.setPower(0);
+                motorFrontLeft.setPower(0);
+                motorBackLeft.setPower(0);
+                motorBackRight.setPower(0);
+            }
+
+            telemetry.addData("FR", motorFrontRight.getPower());
+            telemetry.addData("BR", motorBackRight.getPower());
+            telemetry.addData("FL", motorFrontLeft.getPower());
+            telemetry.addData("BL", motorBackLeft.getPower());
+            telemetry.addData("z: ", mrgyro.getIntegratedZValue());
+            telemetry.update();
+        }
+
+        while (targetHeading != mrgyro.getIntegratedZValue()) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            if (error > 0) {
+                //AXIS LEFT
+                motorFrontRight.setPower(0.15);
+                motorFrontLeft.setPower(-0.15);
+                motorBackLeft.setPower(-0.15);
+                motorBackRight.setPower(0.15);
+            } else if (error < 0) {
+                //AXIS RIGHT
+                motorFrontRight.setPower(-0.15);
+                motorFrontLeft.setPower(0.15);
+                motorBackLeft.setPower(0.15);
+                motorBackRight.setPower(-0.15);
+            } else {
+                motorFrontRight.setPower(0);
+                motorFrontLeft.setPower(0);
+                motorBackLeft.setPower(0);
+                motorBackRight.setPower(0);
+            }
+        }
+
+        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
+
+    }
+
+    public void GYRO_RBPIVOT (double targetHeading, double multiplicationFactor, double maxT) {
+
+        mrgyro.resetZAxisIntegrator();
+
+        double error, correction;
+
+//        inRange = false;
+
+        float gTime = 0;
+        float gTimeStart = System.currentTimeMillis();
+
+        while ((Math.abs(mrgyro.getIntegratedZValue()) < (targetHeading-1)) && (gTime < maxT)) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            correction = error * multiplicationFactor;
+
+            gTime = System.currentTimeMillis() - gTimeStart;
+
+//            if (error > 0) {
+//                //AXIS LEFT
+//                motorFrontRight.setPower(correction);
+//                motorFrontLeft.setPower(-correction);
+//                motorBackLeft.setPower(-correction);
+//                motorBackRight.setPower(correction);
+//            } else if (error < 0) {
+//                //AXIS RIGHT
+//                motorFrontRight.setPower(-correction);
+//                motorFrontLeft.setPower(correction);
+//                motorBackLeft.setPower(correction);
+//                motorBackRight.setPower(-correction);
+//            } else {
+//                motorFrontRight.setPower(0);
+//                motorFrontLeft.setPower(0);
+//                motorBackLeft.setPower(0);
+//                motorBackRight.setPower(0);
+//            }
+
+            motorFrontRight.setPower(-correction);
+            motorFrontLeft.setPower(0);
+            motorBackLeft.setPower(0);
+            motorBackRight.setPower(-correction);
+
+            telemetry.addData("FR", motorFrontRight.getPower());
+            telemetry.addData("BR", motorBackRight.getPower());
+            telemetry.addData("FL", motorFrontLeft.getPower());
+            telemetry.addData("BL", motorBackLeft.getPower());
+            telemetry.addData("z: ", mrgyro.getIntegratedZValue());
+            telemetry.update();
+        }
+
+        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
+
+    }
 
 }

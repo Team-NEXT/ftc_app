@@ -80,6 +80,10 @@ public class multithreadedCrater extends LinearOpMode {
     private double yUp;
     private double yDown;
 
+    public double yCount, xCount;
+
+    public boolean yReset, xReset;
+
     boolean detect = false;
     boolean detectionComplete = false;
 
@@ -210,6 +214,9 @@ public class multithreadedCrater extends LinearOpMode {
         telemetry.log().add("Gyro Calibrating. Do Not Move!");
         mrgyro.calibrate();
 
+        xReset = true;
+        yReset = true;
+
         // Wait until the gyro calibration is complete
         timer.reset();
         while (!isStopRequested() && mrgyro.isCalibrating())  {
@@ -254,6 +261,26 @@ public class multithreadedCrater extends LinearOpMode {
         @Override
         public void run() {
             while (!isInterrupted()) {
+
+                yCount = yAxisDC.getCurrentPosition();
+
+                xCount = latchingDC.getCurrentPosition();
+
+                if (yReset) {
+                    yAxisDC.setMode(STOP_AND_RESET_ENCODER);
+                    yAxisDC.setMode(RUN_USING_ENCODER);
+                    yReset = false;
+                }
+
+                if (xReset) {
+                    latchingDC.setMode(STOP_AND_RESET_ENCODER);
+                    latchingDC.setMode(RUN_USING_ENCODER);
+                    xReset = false;
+                }
+
+                telemetry.addData("x: ", latchingDC.getCurrentPosition());
+                telemetry.addData("y: ", yAxisDC.getCurrentPosition());
+                telemetry.update();
 
             }
         }
@@ -309,7 +336,7 @@ public class multithreadedCrater extends LinearOpMode {
                     }
                 }
 
-                BACKWARD(50, 0.2);
+//                BACKWARD(50, 0.2);
 
                 if (mineralPos == 1) {
                     SWAYRIGHT1(280);
