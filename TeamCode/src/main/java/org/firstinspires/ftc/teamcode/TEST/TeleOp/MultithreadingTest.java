@@ -122,7 +122,7 @@ public class MultithreadingTest extends LinearOpMode {
         dropperLimit = hardwareMap.get(ModernRoboticsTouchSensor.class, "D");
 
         dLoad = 0.71;
-        dUnload = 0.29;
+        dUnload = 0.27;
 
         dropperDC.setDirection(REVERSE);
 
@@ -139,7 +139,7 @@ public class MultithreadingTest extends LinearOpMode {
         //INITIALIZATION
         xServo.setPosition(xUp);
         yServo.setPosition(yUp);
-        flapServo.setPosition(FO);
+        flapServo.setPosition(FC);
 
         Thread driveThread = new DriveThread();
         Thread collectThread = new CollectThread();
@@ -365,34 +365,34 @@ public class MultithreadingTest extends LinearOpMode {
                     }
                 }
                 if (collectorDC.getCurrentPosition() < 1800) {
-                    if (!gamepad2.a && gamepad2.b && (gamepad2.left_stick_x < 0.2)) {
+                    if (!gamepad2.a && gamepad2.b && (gamepad2.left_stick_x > -0.2)) {
                         collectorDC.setPower(1);
                     }
-                    if (!gamepad2.a && !gamepad2.b && (gamepad2.left_stick_x > 0.2)) {
-                        collectorDC.setPower(gamepad2.left_stick_x);
+                    if (!gamepad2.a && !gamepad2.b && (gamepad2.left_stick_x < -0.2)) {
+                        collectorDC.setPower(0.4);
                     }
                 }
                 if (collectorDC.getCurrentPosition() >= 1800) {
-                    if (!gamepad2.a && gamepad2.b && (gamepad2.left_stick_x < 0.2)) {
+                    if (!gamepad2.a && gamepad2.b && (gamepad2.left_stick_x > -0.2)) {
                         collectorDC.setPower(0);
                     }
-                    if (!gamepad2.a && !gamepad2.b && (gamepad2.left_stick_x > 0.2)) {
+                    if (!gamepad2.a && !gamepad2.b && (gamepad2.left_stick_x < -0.2)) {
                         collectorDC.setPower(0);
                     }
                 }
                 if (!collectorLimit.isPressed()) {
-                    if (gamepad2.a && !gamepad2.b && (gamepad2.left_stick_x > -0.2)){
+                    if (gamepad2.a && !gamepad2.b && (gamepad2.left_stick_x < 0.2)){
                         collectorDC.setPower(-1);
                     }
-                    if (!gamepad2.a && !gamepad2.b && (gamepad2.left_stick_x < -0.2)) {
-                        collectorDC.setPower(gamepad2.left_stick_x);
+                    if (!gamepad2.a && !gamepad2.b && (gamepad2.left_stick_x > 0.2)) {
+                        collectorDC.setPower(-0.4);
                     }
                 }
                 if (collectorLimit.isPressed()) {
-                    if (gamepad2.a && !gamepad2.b && (gamepad2.left_stick_x > -0.2)) {
+                    if (gamepad2.a && !gamepad2.b && (gamepad2.left_stick_x < 0.2)) {
                         collectorDC.setPower(0);
                     }
-                    if (!gamepad2.a && !gamepad2.b && (gamepad2.left_stick_x < -0.2)) {
+                    if (!gamepad2.a && !gamepad2.b && (gamepad2.left_stick_x > 0.2)) {
                         collectorDC.setPower(0);
                     }
                 }
@@ -479,7 +479,7 @@ public class MultithreadingTest extends LinearOpMode {
 //                startTime = System.currentTimeMillis();
                     while (dropperServo.getPosition() > dUnload) {
                         dPos = dropperServo.getPosition();
-                        dPos -= 0.04;
+                        dPos -= 0.038;
                         dropperServo.setPosition(dPos);
                     }
                     if (dPos < dUnload) {
@@ -491,7 +491,7 @@ public class MultithreadingTest extends LinearOpMode {
                     // startTime = System.currentTimeMillis();
                     while (dropperServo.getPosition() < dLoad) {
                         dPos = dropperServo.getPosition();
-                        dPos += 0.04;
+                        dPos += 0.042;
                         dropperServo.setPosition(dPos);
                     }
                     if (dPos > dLoad) {

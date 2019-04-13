@@ -206,7 +206,7 @@ public class Depot extends LinearOpMode {
         telemetry.log().clear(); telemetry.log().add("Gyro Calibrated. Press Start.");
         telemetry.clear(); telemetry.update();
 
-        mineralPos = 2;
+        mineralPos = 1;
 
         waitForStart();
 
@@ -228,7 +228,81 @@ public class Depot extends LinearOpMode {
         SWAYRIGHT(320);
 
         if (mineralPos == 1) {
-
+            GYROAXISRIGHT(-85, 0.006, 900);
+            collectorDC.setPower(0);
+            collectorDC.setMode(STOP_AND_RESET_ENCODER);
+            collectorDC.setMode(RUN_USING_ENCODER);
+            while (collectorDC.getCurrentPosition() < 1800) {
+                collectorDC.setPower(1);
+            }
+            collectorDC.setPower(0);
+            while (collectorServo.getPosition() < cMarker) {
+                cPos = collectorServo.getPosition();
+                cPos += 0.05;
+                collectorServo.setPosition(cPos);
+            }
+            if (cPos > cMarker) {
+                collectorServo.setPosition(cMarker);
+            }
+            sweeperServo.setPower(-1);
+            Thread.sleep(700);
+            sweeperServo.setPower(0);
+            while (collectorDC.getCurrentPosition() > 500) {
+                collectorDC.setPower(-1);
+            }
+            while (!collectorLimit.isPressed()) {
+                collectorDC.setPower(-0.4);
+            }
+            collectorDC.setPower(0);
+            GYROAXISRIGHT(-37, 0.008, 900);
+            while (collectorServo.getPosition() < cOpen) {
+                cPos = collectorServo.getPosition();
+                cPos += 0.05;
+                collectorServo.setPosition(cPos);
+            }
+            if (cPos > cOpen) {
+                collectorServo.setPosition(cOpen);
+            }
+            SWEEPER(1);
+            collectorDC.setPower(0);
+            collectorDC.setMode(STOP_AND_RESET_ENCODER);
+            collectorDC.setMode(RUN_USING_ENCODER);
+            while (collectorDC.getCurrentPosition() < 800) {
+                collectorDC.setPower(1);
+            }
+            collectorDC.setPower(0);
+            Thread.sleep(700);
+            while (collectorServo.getPosition() > cMid) {
+                cPos = collectorServo.getPosition();
+                cPos -= 0.05;
+                collectorServo.setPosition(cMid);
+            }
+            if (cPos < cMid) {
+                collectorServo.setPosition(cMid);
+            }
+            while (collectorDC.getCurrentPosition() > 350) {
+                collectorDC.setPower(-1);
+            }
+            collectorDC.setPower(0);
+            while (!collectorLimit.isPressed()) {
+                collectorDC.setPower(-0.4);
+            }
+            collectorDC.setPower(0);
+            while (collectorServo.getPosition() > cClose) {
+                cPos = collectorServo.getPosition();
+                cPos -= 0.05;
+                collectorServo.setPosition(cPos);
+            }
+            if (cPos < cClose) {
+                collectorServo.setPosition(cClose);
+            }
+            flapServo.setPosition(FO);
+            GYROAXISLEFT(37, 0.008, 900);
+            SWEEPER(0);
+            DROP();
+            Thread.sleep(100);
+            GYROAXISLEFT(85, 0.006, 900);
+            RAMPFORWARD(500, 0.1, 0.1, 0.5, 0.05, 0.06);
         }
 
         if (mineralPos == 2) {
