@@ -11,7 +11,7 @@
 
 5. better implementation for encoders
 
-6. fix sway in auto (gyro, encoders)
+6. **fix sway in auto (gyro, encoders)
 
 7. **improve control mapping
 
@@ -21,20 +21,22 @@
 
 10. telemetry games
 
-11. improve auto turning (gyro, encoders)
+11. **improve auto turning (gyro, encoders)
 
 12. PUBLIC CLASSES
+
+13. ADD GYRO TURN TIMER!!!!!!!!!!!!!!
 
 --> for wavy movement in auto: run motors at specific power to achieve desired path and move till gyro returns desired heading value
 
 //**To-Do**//
 -------------
 
-1. Autonomous basic routes
+1. **Autonomous basic routes
 
-2. Autonomous additional routes
+2. **Autonomous additional routes
 
-3. TeleOp basic code
+3. **TeleOp basic code
 
 4. TeleOp experimental code
 
@@ -42,4 +44,4 @@
 //**Miscellaneous**//
 ---------------------
 
-1. MR gyro sensor needs to be attached to the robot
+1. **MR gyro sensor needs to be attached to the robot

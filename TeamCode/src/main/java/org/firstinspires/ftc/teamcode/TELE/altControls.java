@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.TEST.TeleOp;
+package org.firstinspires.ftc.teamcode.TELE;
 
 import android.view.Display;
 
@@ -13,9 +13,27 @@ import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 
-@TeleOp(name = "mttest", group = "final")
+@TeleOp(name = "alt controls", group = "final")
 
-public class MultithreadingTest extends LinearOpMode {
+/**
+ * G1: drivetrain and collector mech
+ * G2: dropper mech and latching mech
+ *
+ * G1: drivetrain controls = LS translation, RS rotation; D-PAD inching; half speed while R3 is held down.
+ *     collector extends with LT (power = LT val), retracts with RT (power = RT val);
+ *     LB = collector down and sweeper on, RB = collector retracts completely.
+ *     A = SWEEPER REVERSE (slow), B = SWEEPER OFF, Y = SWEEPER ON;
+ *     X = cycles between low, mid and high collector servo val;
+ *     L3 = cancel collector retraction method initiated by R3.
+ *
+ * G2: RB = DROPPER UP, LB = DROPPER DOWN;
+ *     A = unload, B = load;
+ *     L3 = dropping method, R3 = dropper retraction method;
+ *     Y = cancel dropper methods.
+ *     D-PAD UP = latching mech up, D-PAD DOWN = latching mech down
+ */
+
+public class altControls extends LinearOpMode {
 
     //DRIVE
     private DcMotor motorFrontLeft;
@@ -425,7 +443,7 @@ public class MultithreadingTest extends LinearOpMode {
                         collectorDC.setPower(-1);
                     }
 
-                   // sweeperServo.setPower(0);
+                    // sweeperServo.setPower(0);
 
                     while (collectorDC.getCurrentPosition() <= 400 && !collectorLimit.isPressed() && !cExit) {
                         collectorDC.setPower(-0.4);
@@ -553,16 +571,16 @@ public class MultithreadingTest extends LinearOpMode {
                     }
                 }
 
-            if (dropperDC.getCurrentPosition() < 1000) {
-                if (gamepad1.right_bumper && !gamepad1.left_bumper) {
-                    dropperDC.setPower(1);
+                if (dropperDC.getCurrentPosition() < 1000) {
+                    if (gamepad1.right_bumper && !gamepad1.left_bumper) {
+                        dropperDC.setPower(1);
+                    }
                 }
-            }
-            if (dropperDC.getCurrentPosition() >= 1000) {
-                if (gamepad1.right_bumper && !gamepad1.left_bumper) {
-                    dropperDC.setPower(0);
+                if (dropperDC.getCurrentPosition() >= 1000) {
+                    if (gamepad1.right_bumper && !gamepad1.left_bumper) {
+                        dropperDC.setPower(0);
+                    }
                 }
-            }
                 if (dropperLimit.isPressed()) {
                     if (!gamepad1.right_bumper && gamepad1.left_bumper) {
                         dropperDC.setPower(0);
