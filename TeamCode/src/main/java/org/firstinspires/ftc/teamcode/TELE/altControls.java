@@ -26,11 +26,11 @@ import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
  *     X = cycles between low, mid and high collector servo val;
  *     L3 = cancel collector retraction method initiated by R3.
  *
- * G2: RB = DROPPER UP, LB = DROPPER DOWN;
- *     A = unload, B = load;
- *     L3 = dropping method, R3 = dropper retraction method;
- *     Y = cancel dropper methods.
- *     D-PAD UP = latching mech up, D-PAD DOWN = latching mech down
+ * G2: RT = drop method, LT = retraction method;
+ *     A = up, B = down;
+ *     X = load, Y = unload;
+ *     LS || RS = cancel dropper methods.
+ *     D-PAD UP = latching mech up, D-PAD DOWN = latching mech down.
  */
 
 public class altControls extends LinearOpMode {
@@ -201,7 +201,7 @@ public class altControls extends LinearOpMode {
 //                gamepad1.setJoystickDeadzone(0.3f); //THIS WAS NEVER ON
 
                 /**DRIVING*/
-                if (gamepad1.right_trigger < 0.1 && gamepad1.left_trigger < 0.2) {
+                if (!gamepad1.left_stick_button && !gamepad1.dpad_up && !gamepad1.dpad_left && !gamepad1.dpad_down && !gamepad1.dpad_right) {
 
                     telemetry.addLine("full speed");
 
@@ -236,19 +236,21 @@ public class altControls extends LinearOpMode {
                 }
 
                 /**INCHING*/
-                if (gamepad1.right_trigger > 0.1 && !(gamepad1.left_trigger > 0.1)) {
+//                if (gamepad1.right_trigger > 0.1 && !(gamepad1.left_trigger > 0.1)) {
+//
+//                    telemetry.addLine("INCHING");
+//                    telemetry.update();
 
-                    telemetry.addLine("INCHING");
-                    telemetry.update();
-
-                    if (!gamepad1.dpad_up && !gamepad1.dpad_down && !gamepad1.dpad_left && !gamepad1.dpad_right) {
-                        motorFrontRight.setPower(0);
-                        motorFrontLeft.setPower(0);
-                        motorBackLeft.setPower(0);
-                        motorBackRight.setPower(0);
-                    }
+//                    if (!gamepad1.dpad_up && !gamepad1.dpad_down && !gamepad1.dpad_left && !gamepad1.dpad_right) {
+//                        motorFrontRight.setPower(0);
+//                        motorFrontLeft.setPower(0);
+//                        motorBackLeft.setPower(0);
+//                        motorBackRight.setPower(0);
+//                    }
 
                     if (gamepad1.dpad_up && !gamepad1.dpad_down && !gamepad1.dpad_left && !gamepad1.dpad_right) {
+                        telemetry.addLine("inching");
+                        telemetry.update();
                         motorFrontRight.setPower(0.2);
                         motorFrontLeft.setPower(0.2);
                         motorBackLeft.setPower(0.2);
@@ -256,6 +258,8 @@ public class altControls extends LinearOpMode {
                     }
 
                     if (!gamepad1.dpad_up && gamepad1.dpad_down && !gamepad1.dpad_left && !gamepad1.dpad_right) {
+                        telemetry.addLine("inching");
+                        telemetry.update();
                         motorFrontRight.setPower(-0.2);
                         motorFrontLeft.setPower(-0.2);
                         motorBackLeft.setPower(-0.2);
@@ -263,24 +267,28 @@ public class altControls extends LinearOpMode {
                     }
 
                     if (!gamepad1.dpad_up && !gamepad1.dpad_down && gamepad1.dpad_left && !gamepad1.dpad_right) {
-                        motorFrontRight.setPower(0.2);
-                        motorFrontLeft.setPower(-0.2);
-                        motorBackLeft.setPower(-0.2);
-                        motorBackRight.setPower(0.2);
-                    }
-
-                    if (!gamepad1.dpad_up && !gamepad1.dpad_down && !gamepad1.dpad_left && gamepad1.dpad_right) {
+                        telemetry.addLine("inching");
+                        telemetry.update();
                         motorFrontRight.setPower(-0.2);
                         motorFrontLeft.setPower(0.2);
                         motorBackLeft.setPower(0.2);
                         motorBackRight.setPower(-0.2);
                     }
 
-                }
+                    if (!gamepad1.dpad_up && !gamepad1.dpad_down && !gamepad1.dpad_left && gamepad1.dpad_right) {
+                        telemetry.addLine("inching");
+                        telemetry.update();
+                        motorFrontRight.setPower(0.2);
+                        motorFrontLeft.setPower(-0.2);
+                        motorBackLeft.setPower(-0.2);
+                        motorBackRight.setPower(0.2);
+                    }
+
+//                }
 
                 /**MEDIUM*/
-                if (gamepad1.left_trigger > 0.1 &&!(gamepad1.right_trigger > 0.1)) {
-                    telemetry.addLine("full speed");
+                if (gamepad1.left_stick_button && !gamepad1.dpad_up && !gamepad1.dpad_left && !gamepad1.dpad_down && !gamepad1.dpad_right) {
+                    telemetry.addLine("half speed");
 
                     double hypot = Math.hypot((gamepad1.left_stick_x*0.5), (gamepad1.left_stick_y*0.5));
                     telemetry.addData("r = ", hypot);
@@ -330,22 +338,35 @@ public class altControls extends LinearOpMode {
 
             while (!isInterrupted()) {
 
-                /**SWEEPER*/
-                if (gamepad2.right_bumper && !gamepad2.left_bumper && gamepad2.left_trigger < 0.1) {
-                    sweeperServo.setPower(1);
-                }
-                if (gamepad2.left_trigger > 0.1 && !gamepad2.right_bumper && !gamepad1.left_bumper  && !gamepad2.b) {
-                    sweeperServo.setPower(-gamepad2.left_trigger);
-                }
-                if (gamepad2.left_bumper && !gamepad2.right_bumper && gamepad2.left_trigger < 0.1  && !gamepad2.b) {
-                    sweeperServo.setPower(0);
+                /**COLLECTION MECH*/
+
+                if (collectorLimit.isPressed()) {
+                    if (gamepad1.left_trigger < 0.02 && gamepad1.right_trigger >= 0.02) {
+                        collectorDC.setPower(0);
+                    }
+                } else {
+                    if (gamepad1.left_trigger < 0.02 && gamepad1.right_trigger >= 0.02) {
+                        collectorDC.setPower(-gamepad1.right_trigger);
+                    }
                 }
 
-                /**COLLECTOR*/
-                if (gamepad2.y && !gamepad2.x && !gamepad2.b && (gamepad2.right_trigger < 0.1)) {
-//                startTime = System.currentTimeMillis();
+                if (collectorDC.getCurrentPosition() > 2000) {
+                    if (gamepad1.left_trigger >= 0.02 && gamepad1.right_trigger < 0.02) {
+                        collectorDC.setPower(0);
+                    }
+                } else {
+                    if (gamepad1.left_trigger >= 0.02 && gamepad1.right_trigger < 0.02) {
+                        collectorDC.setPower(gamepad1.left_trigger);
+                    }
+                }
+
+                if (gamepad1.left_trigger < 0.02 && gamepad1.right_trigger < 0.02) {
+                    collectorDC.setPower(0);
+                }
+
+                if (gamepad1.left_bumper) {
                     flapServo.setPosition(FC);
-                    while (collectorServo.getPosition() < cOpen && !gamepad2.b) {
+                    while (collectorServo.getPosition() < cOpen) {
                         cPos = collectorServo.getPosition();
                         cPos += 0.05;
                         collectorServo.setPosition(cPos);
@@ -354,74 +375,12 @@ public class altControls extends LinearOpMode {
                         cPos = cOpen;
                         collectorServo.setPosition(cPos);
                     }
-                }
-//            if (!collectorServoLimit.isPressed()) {
-                if (!gamepad2.y && gamepad2.x && !gamepad2.b && (gamepad2.right_trigger < 0.1)) {
-//                    startTime = System.currentTimeMillis();
-                    flapServo.setPosition(FO);
-                    while (collectorServo.getPosition() > cClose && !gamepad2.b) {
-                        cPos = collectorServo.getPosition();
-                        cPos -= 0.07;
-                        collectorServo.setPosition(cPos);
-                    }
-                    if (cPos < cClose) {
-                        cPos = cClose;
-                        collectorServo.setPosition(cPos);
-                    }
-                }
-//            }
-                if (!gamepad2.y && !gamepad2.x && !gamepad2.b && (gamepad2.right_trigger > 0.1)) {
-//                startTime = System.currentTimeMillis();
-                    while (collectorServo.getPosition() < cMid && !gamepad2.b) {
-                        cPos = collectorServo.getPosition();
-                        cPos += 0.045;
-                        collectorServo.setPosition(cPos);
-                    }
-                    if (cPos > cMid) {
-                        cPos = cMid;
-                        collectorServo.setPosition(cMid);
-                    }
-                }
-                if (collectorDC.getCurrentPosition() < 1800) {
-                    if (!gamepad2.a && gamepad2.b && (gamepad2.left_stick_x > -0.2)) {
-                        collectorDC.setPower(1);
-                    }
-                    if (!gamepad2.a && !gamepad2.b && (gamepad2.left_stick_x < -0.2)) {
-                        collectorDC.setPower(0.4);
-                    }
-                }
-                if (collectorDC.getCurrentPosition() >= 1800) {
-                    if (!gamepad2.a && gamepad2.b && (gamepad2.left_stick_x > -0.2)) {
-                        collectorDC.setPower(0);
-                    }
-                    if (!gamepad2.a && !gamepad2.b && (gamepad2.left_stick_x < -0.2)) {
-                        collectorDC.setPower(0);
-                    }
-                }
-                if (!collectorLimit.isPressed()) {
-                    if (gamepad2.a && !gamepad2.b && (gamepad2.left_stick_x < 0.2)){
-                        collectorDC.setPower(-1);
-                    }
-                    if (!gamepad2.a && !gamepad2.b && (gamepad2.left_stick_x > 0.2)) {
-                        collectorDC.setPower(-0.4);
-                    }
-                }
-                if (collectorLimit.isPressed()) {
-                    if (gamepad2.a && !gamepad2.b && (gamepad2.left_stick_x < 0.2)) {
-                        collectorDC.setPower(0);
-                    }
-                    if (!gamepad2.a && !gamepad2.b && (gamepad2.left_stick_x > 0.2)) {
-                        collectorDC.setPower(0);
-                    }
+                    sweeperServo.setPower(1);
                 }
 
-                if (!gamepad2.b && !gamepad2.a && (gamepad2.left_stick_x<0.2) && (gamepad2.left_stick_x>-0.2)) {
-                    collectorDC.setPower(0);
-                }
+                if (gamepad1.right_bumper) {
+                    flapServo.setPosition(FC);
 
-
-                if (gamepad2.right_stick_button) {
-//                COLLECTOREXTCLOSE(0.8);
                     sweeperServo.setPower(1);
 
                     cExit = false;
@@ -456,7 +415,7 @@ public class altControls extends LinearOpMode {
 
                     while (collectorServo.getPosition() >= cClose && !cExit) {
                         cPos = collectorServo.getPosition();
-                        cPos -= 0.07;
+                        cPos -= 0.06;
                         collectorServo.setPosition(cPos);
                     }
 
@@ -467,7 +426,73 @@ public class altControls extends LinearOpMode {
 
                     flapServo.setPosition(FO);
                 }
-
+                if (gamepad1.a && !gamepad1.b && !gamepad1.y) {
+                    sweeperServo.setPower(-0.8);
+                }
+                if (!gamepad1.a && gamepad1.b && !gamepad1.y) {
+                    sweeperServo.setPower(0);
+                }
+                if (!gamepad1.a && !gamepad1.b && gamepad1.y) {
+                    sweeperServo.setPower(1);
+                }
+                if (gamepad1.x) {
+                    if (collectorServo.getPosition() > 0.7) {
+                        while (collectorServo.getPosition() > cMid) {
+                            cPos = collectorServo.getPosition();
+                            cPos -= 0.05;
+                            collectorServo.setPosition(cPos);
+                        }
+                        if (cPos < cMid) {
+                            collectorServo.setPosition(cMid);
+                        }
+                    } else if (collectorServo.getPosition() > 0.15) {
+                        while (collectorServo.getPosition() > cClose) {
+                            cPos = collectorServo.getPosition();
+                            cPos -= 0.05;
+                            collectorServo.setPosition(cPos);
+                        }
+                        if (cPos < cClose) {
+                            collectorServo.setPosition(cClose);
+                        }
+                    } else {
+                        while (collectorServo.getPosition() < cOpen) {
+                            cPos = collectorServo.getPosition();
+                            cPos += 0.05;
+                            collectorServo.setPosition(cPos);
+                        }
+                        if (cPos > cOpen) {
+                            collectorServo.setPosition(cOpen);
+                        }
+                    }
+//                    if (collectorServo.getPosition() < 0.2) {
+//                        while (collectorServo.getPosition() < cMid) {
+//                            cPos = collectorServo.getPosition();
+//                            cPos += 0.05;
+//                            collectorServo.setPosition(cPos);
+//                        }
+//                        if (cPos > cMid) {
+//                            collectorServo.setPosition(cMid);
+//                        }
+//                    } else if (collectorServo.getPosition() < 0.75) {
+//                        while (collectorServo.getPosition() < cOpen) {
+//                            cPos = collectorServo.getPosition();
+//                            cPos += 0.05;
+//                            collectorServo.setPosition(cPos);
+//                        }
+//                        if (cPos > cOpen) {
+//                            collectorServo.setPosition(cOpen);
+//                        }
+//                    } else {
+//                        while (collectorServo.getPosition() > cClose) {
+//                            cPos = collectorServo.getPosition();
+//                            cPos -= 0.05;
+//                            collectorServo.setPosition(cPos);
+//                        }
+//                        if (cPos < cClose) {
+//                            collectorServo.setPosition(cClose);
+//                        }
+//                    }
+                }
             }
 
         }
@@ -493,7 +518,7 @@ public class altControls extends LinearOpMode {
                     dropperDC.setMode(RUN_USING_ENCODER);
                 }
 
-                if (!gamepad1.right_bumper && !gamepad1.left_bumper && !gamepad1.a && gamepad1.b) {
+                if (!gamepad2.a && !gamepad2.b && !gamepad2.x && gamepad2.y) {
 //                startTime = System.currentTimeMillis();
                     while (dropperServo.getPosition() > dUnload) {
                         dPos = dropperServo.getPosition();
@@ -505,7 +530,7 @@ public class altControls extends LinearOpMode {
                         dropperServo.setPosition(dPos);
                     }
                 }
-                if (!gamepad1.b && gamepad1.a) {
+                if (!gamepad2.y && gamepad2.x) {
                     // startTime = System.currentTimeMillis();
                     while (dropperServo.getPosition() < dLoad) {
                         dPos = dropperServo.getPosition();
@@ -518,7 +543,7 @@ public class altControls extends LinearOpMode {
                     }
                 }
 
-                if (gamepad1. right_stick_button && !gamepad1.left_stick_button) {
+                if (gamepad2.left_trigger>0.1 && gamepad2.right_trigger<0.1) {
                     dExit = false;
                     while (dropperServo.getPosition() > dLoad && !dExit) {
                         dPos = dropperServo.getPosition();
@@ -530,7 +555,7 @@ public class altControls extends LinearOpMode {
                         dropperServo.setPosition(dPos);
                     }
 //        startTime = System.currentTimeMillis();
-                    while (dropperDC.getCurrentPosition() > 500 && !dExit) {
+                    while (dropperDC.getCurrentPosition() > 400 && !dExit) {
                         dropperDC.setPower(-1);
                     }
                     dropperDC.setPower(0);
@@ -543,7 +568,7 @@ public class altControls extends LinearOpMode {
                     dropperDC.setPower(0);
                 }
 
-                if (!gamepad1. right_stick_button && gamepad1.left_stick_button && dropperDC.getCurrentPosition()<150) {
+                if (gamepad2.left_trigger<0.1 && gamepad2.right_trigger>0.1 && dropperDC.getCurrentPosition()<100) {
                     dExit = false;
                     dropperDC.setMode(STOP_AND_RESET_ENCODER);
                     dropperDC.setMode(RUN_USING_ENCODER);
@@ -555,7 +580,7 @@ public class altControls extends LinearOpMode {
                     if (cPos < cDrop) {
                         collectorServo.setPosition(cDrop);
                     }
-                    while (dropperDC.getCurrentPosition() < 1000 && !dExit) {
+                    while (dropperDC.getCurrentPosition() < 900 && !dExit) {
                         dropperDC.setPower(1);
                     }
                     dropperDC.setPower(0);
@@ -563,7 +588,7 @@ public class altControls extends LinearOpMode {
                     dropperDC.setPower(0);
                     while (dropperServo.getPosition() > dUnload && !dExit) {
                         dPos = dropperServo.getPosition();
-                        dPos -= 0.03;
+                        dPos -= 0.025;
                         dropperServo.setPosition(dPos);
                     }
                     if (dPos < dUnload) {
@@ -571,34 +596,34 @@ public class altControls extends LinearOpMode {
                     }
                 }
 
-                if (dropperDC.getCurrentPosition() < 1000) {
-                    if (gamepad1.right_bumper && !gamepad1.left_bumper) {
+                if (dropperDC.getCurrentPosition() < 900) {
+                    if (!gamepad2.a && gamepad2.b) {
                         dropperDC.setPower(1);
                     }
                 }
-                if (dropperDC.getCurrentPosition() >= 1000) {
-                    if (gamepad1.right_bumper && !gamepad1.left_bumper) {
+                if (dropperDC.getCurrentPosition() >= 900) {
+                    if (!gamepad2.a && gamepad2.b) {
                         dropperDC.setPower(0);
                     }
                 }
                 if (dropperLimit.isPressed()) {
-                    if (!gamepad1.right_bumper && gamepad1.left_bumper) {
+                    if (gamepad2.a && !gamepad2.b) {
                         dropperDC.setPower(0);
                     }
                 }
                 if (!dropperLimit.isPressed()) {
-                    if (dropperDC.getCurrentPosition() > 300) {
-                        if (!gamepad1.right_bumper && gamepad1.left_bumper) {
+                    if (dropperDC.getCurrentPosition() > 200) {
+                        if (gamepad2.a && !gamepad2.b) {
                             dropperDC.setPower(-1);
                         }
                     }
-                    if (dropperDC.getCurrentPosition() <= 300) {
-                        if (!gamepad1.right_bumper && gamepad1.left_bumper) {
+                    if (dropperDC.getCurrentPosition() <= 200) {
+                        if (gamepad2.a && !gamepad2.b) {
                             dropperDC.setPower(-0.4);
                         }
                     }
                 }
-                if (!gamepad1.left_bumper && !gamepad1.right_bumper) {
+                if (!gamepad2.a && !gamepad2.b) {
                     dropperDC.setPower(0);
                 }
 
@@ -651,10 +676,10 @@ public class altControls extends LinearOpMode {
                 }
 
                 /**cExit && dExit Monitoring*/
-                if (gamepad1.y) {
+                if (gamepad2.left_stick_button || gamepad2.right_stick_button) {
                     dExit = true;
                 }
-                if (gamepad2.left_stick_button) {
+                if (gamepad1.right_stick_button) {
                     cExit = true;
                 }
 

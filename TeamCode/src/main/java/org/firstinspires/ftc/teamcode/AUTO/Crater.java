@@ -89,6 +89,8 @@ public class Crater extends LinearOpMode {
     private static IntegratingGyroscope gyro;
     private static ModernRoboticsI2cGyro mrgyro;
 
+    private ElapsedTime runtime = new ElapsedTime();
+
     int mineralPos;
 
     @Override
@@ -168,6 +170,9 @@ public class Crater extends LinearOpMode {
         yDown = 0.39;
 
         //INITIALIZATION
+
+        runtime.reset();
+
         dropperServo.setPosition(dLoad);
 
         xServo.setPosition(xUp);
@@ -211,9 +216,9 @@ public class Crater extends LinearOpMode {
 
         /**CODE AFTER STARTING*/
 
-//        LATCHING(1);
+        LATCHING(1);
 
-        Thread.sleep(3000);
+//        Thread.sleep(3000);
 
         yServo.setPosition(yDown);
         xServo.setPosition(xDown);
@@ -227,12 +232,12 @@ public class Crater extends LinearOpMode {
         SWAYRIGHT(300);
         RAMPFORWARD(890, 0.1, 0.1, 0.5, 0.05, 0.06);
         Thread.sleep(200);
-        GYROAXISLEFT(42, 0.00765, 900);
+        GYROAXISLEFT(42, 0.0074, 900);
 //        AXISLEFT(41, 0.3);
         collectorDC.setPower(0);
         collectorDC.setMode(STOP_AND_RESET_ENCODER);
         collectorDC.setMode(RUN_USING_ENCODER);
-        while (collectorDC.getCurrentPosition() < 1800) {
+        while (collectorDC.getCurrentPosition() < 2000) {
             collectorDC.setPower(1);
         }
         collectorDC.setPower(0);
@@ -384,14 +389,15 @@ public class Crater extends LinearOpMode {
         }
 
         if (mineralPos == 2) {
-            GYROAXISLEFT(124, 0.0048, 900);
-            FORWARD(830, 0.3);
-            GYROAXISLEFT(85, 0.00535, 900);
-            FORWARD(130, 0.3);
+            GYROAXISRIGHT(-41, 0.0087, 900);
+//            FORWARD(830, 0.3);
+            RAMPBACKWARD(700, -0.1, -0.1, -0.5, 0.05, 0.06);
+            GYROAXISRIGHT(-85, 0.0049, 900);
+            FORWARD(200, 0.3);
             collectorDC.setPower(0);
             collectorDC.setMode(STOP_AND_RESET_ENCODER);
             collectorDC.setMode(RUN_USING_ENCODER);
-            while (collectorDC.getCurrentPosition() < 400) {
+            while (collectorDC.getCurrentPosition() < 300) {
                 collectorDC.setPower(1);
             }
             collectorDC.setPower(0);
@@ -405,8 +411,8 @@ public class Crater extends LinearOpMode {
             }
             flapServo.setPosition(FC);
             sweeperServo.setPower(1);
-            while (collectorDC.getCurrentPosition() < 800) {
-                collectorDC.setPower(0.4);
+            while (collectorDC.getCurrentPosition() < 1000) {
+                collectorDC.setPower(0.6);
             }
             collectorDC.setPower(0);
             Thread.sleep(600);
@@ -435,14 +441,16 @@ public class Crater extends LinearOpMode {
                 collectorServo.setPosition(cClose);
             }
             flapServo.setPosition(FO);
-            tank(60, 0, -0.3);
+//            tank(60, 0, -0.3);
+            BACKWARD(80, 0.25);
+            GYRO_RBPIVOT(-4, 0.07, 900);
             Thread.sleep(400);
             sweeperServo.setPower(0);
             DROP();
             collectorDC.setPower(0);
             collectorDC.setMode(STOP_AND_RESET_ENCODER);
             collectorDC.setMode(RUN_USING_ENCODER);
-            while (collectorDC.getCurrentPosition() < 425) {
+            while (collectorDC.getCurrentPosition() < 535) {
                 collectorDC.setPower(1);
             }
             collectorDC.setPower(0);
@@ -456,11 +464,11 @@ public class Crater extends LinearOpMode {
             }
             flapServo.setPosition(FC);
             sweeperServo.setPower(1);
-            while (collectorDC.getCurrentPosition() < 1100) {
-                collectorDC.setPower(0.4);
+            while (collectorDC.getCurrentPosition() < 1300) {
+                collectorDC.setPower(0.6);
             }
             collectorDC.setPower(0);
-            Thread.sleep(600);
+            Thread.sleep(100);
             while (collectorServo.getPosition() > cMid) {
                 cPos = collectorServo.getPosition();
                 cPos -= 0.05;
@@ -604,6 +612,11 @@ public class Crater extends LinearOpMode {
                 collectorServo.setPosition(cMid);
             }
         }
+        /**TO TEST RANDOM SHIT*/
+        if (mineralPos == 4) {
+//            GYROAXISLEFT(85, 0.005, 900);
+            Thread.sleep(10000);
+        }
 //
 //        COLLECTORCONTRACT(0.8);
 //
@@ -729,6 +742,57 @@ public class Crater extends LinearOpMode {
                     power = endPower;
                 } else {
                     power -= decrement;
+                }
+            }
+
+            motorFrontRight.setPower(power);
+            motorFrontLeft.setPower(power);
+            motorBackLeft.setPower(power);
+            motorBackRight.setPower(power);
+
+            telemetry.addData("FR", motorFrontRight.getPower());
+            telemetry.addData("BR", motorBackRight.getPower());
+            telemetry.addData("FL", motorFrontLeft.getPower());
+            telemetry.addData("BL", motorBackLeft.getPower());
+            telemetry.addData("y: ", Math.abs(yAxisDC.getCurrentPosition()));
+            telemetry.update();
+        }
+
+        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
+
+    }
+
+    public void RAMPBACKWARD (int mmDistance, double startPower, double endPower, double maxPower, double increment, double decrement) {
+
+        double targetTicks = mmDistance * singleTicks;
+        double power = startPower;
+
+        yAxisDC.setMode(STOP_AND_RESET_ENCODER);
+        yAxisDC.setMode(RUN_USING_ENCODER);
+
+        while ((targetTicks - 100) > Math.abs(yAxisDC.getCurrentPosition())) {
+
+            if (Math.abs(yAxisDC.getCurrentPosition()) <= (targetTicks/2)) {
+                telemetry.addData("RUP", "");
+                if (power < maxPower) {
+                    power = maxPower;
+                } else {
+                    power -= increment;
+                }
+            } else if (Math.abs(yAxisDC.getCurrentPosition()) >= (targetTicks/2)) {
+                telemetry.addData("RD", "");
+                if (power > endPower) {
+                    power = endPower;
+                } else {
+                    power += decrement;
                 }
             }
 
@@ -1423,13 +1487,13 @@ public class Crater extends LinearOpMode {
         if (cPos < cDrop) {
             collectorServo.setPosition(cDrop);
         }
-        while (dropperDC.getCurrentPosition() < 1000) {
+        while (dropperDC.getCurrentPosition() < 900) {
             dropperDC.setPower(1);
         }
         dropperDC.setPower(0);
         while (dropperServo.getPosition() > dUnload) {
             dPos = dropperServo.getPosition();
-            dPos -= 0.04;
+            dPos -= 0.035;
             dropperServo.setPosition(dPos);
         }
         if (dPos < dUnload) {
@@ -1470,7 +1534,7 @@ public class Crater extends LinearOpMode {
         if (cPos < cDrop) {
             collectorServo.setPosition(cDrop);
         }
-        while (dropperDC.getCurrentPosition() < 900) {
+        while (dropperDC.getCurrentPosition() < 800) {
             dropperDC.setPower(1);
         }
         dropperDC.setPower(0);
@@ -1517,13 +1581,13 @@ public class Crater extends LinearOpMode {
         if (cPos < cDrop) {
             collectorServo.setPosition(cDrop);
         }
-        while (dropperDC.getCurrentPosition() < 1000) {
+        while (dropperDC.getCurrentPosition() < 900) {
             dropperDC.setPower(1);
         }
         dropperDC.setPower(0);
         while (dropperServo.getPosition() > dUnload) {
             dPos = dropperServo.getPosition();
-            dPos -= 0.04;
+            dPos -= 0.035;
             dropperServo.setPosition(dPos);
         }
         if (dPos < dUnload) {
@@ -1542,7 +1606,7 @@ public class Crater extends LinearOpMode {
         if (cPos < cDrop) {
             collectorServo.setPosition(cDrop);
         }
-        while (dropperDC.getCurrentPosition() < 900) {
+        while (dropperDC.getCurrentPosition() < 800) {
             dropperDC.setPower(1);
         }
         dropperDC.setPower(0);
@@ -1561,6 +1625,7 @@ public class Crater extends LinearOpMode {
         mrgyro.resetZAxisIntegrator();
 
         double error, correction;
+        double exitTime = 0;
 
 //        inRange = false;
 
@@ -1569,13 +1634,18 @@ public class Crater extends LinearOpMode {
         float gTime = 0;
         float gTimeStart = System.currentTimeMillis();
 
-        while ((mrgyro.getIntegratedZValue() < (targetHeading-1)) && !loopBreak) {
+        runtime.reset();
+        while ((mrgyro.getIntegratedZValue() < (targetHeading)) && !loopBreak) {
             error = targetHeading - mrgyro.getIntegratedZValue();
             correction = error * multiplicationFactor;
 
-            gTime = System.currentTimeMillis() - gTimeStart;
+//            gTime = System.currentTimeMillis() - gTimeStart;
 
-            if (gTime < maxT) {
+//            telemetry.addData("time: ", runtime.time());
+            telemetry.addData("millis: ", runtime.milliseconds());
+            telemetry.update();
+
+            if (runtime.milliseconds() < maxT) {
                 if (error > 0) {
                     //AXIS LEFT
                     motorFrontRight.setPower(correction);
@@ -1595,6 +1665,10 @@ public class Crater extends LinearOpMode {
                     motorBackRight.setPower(0);
                 }
             }
+            else {
+                exitTime = runtime.milliseconds();
+                loopBreak = true;
+            }
 
 //            if (maxT > gTime) {
 //                motorFrontRight.setPower(correction);
@@ -1604,6 +1678,98 @@ public class Crater extends LinearOpMode {
 //            } else {
 //                loopBreak = true;
 //            }
+
+            telemetry.addData("FR", motorFrontRight.getPower());
+            telemetry.addData("BR", motorBackRight.getPower());
+            telemetry.addData("FL", motorFrontLeft.getPower());
+            telemetry.addData("BL", motorBackLeft.getPower());
+            telemetry.addData("z: ", mrgyro.getIntegratedZValue());
+            telemetry.update();
+        }
+
+        telemetry.addData("gyro exited at: ", mrgyro.getIntegratedZValue());
+        telemetry.addData("time elapsed: ", exitTime);
+        telemetry.update();
+
+        while (targetHeading != mrgyro.getIntegratedZValue()) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            if (error > 0) {
+                //AXIS LEFT
+                motorFrontRight.setPower(0.15);
+                motorFrontLeft.setPower(-0.15);
+                motorBackLeft.setPower(-0.15);
+                motorBackRight.setPower(0.15);
+            } else if (error < 0) {
+                //AXIS RIGHT
+                motorFrontRight.setPower(-0.15);
+                motorFrontLeft.setPower(0.15);
+                motorBackLeft.setPower(0.15);
+                motorBackRight.setPower(-0.15);
+            } else {
+                motorFrontRight.setPower(0);
+                motorFrontLeft.setPower(0);
+                motorBackLeft.setPower(0);
+                motorBackRight.setPower(0);
+            }
+        }
+
+        telemetry.addData("afterEC: ", mrgyro.getIntegratedZValue());
+        telemetry.update();
+
+        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
+
+    }
+
+    public void GYROAXISRIGHT (double targetHeading, double multiplicationFactor, double maxT) {
+
+        mrgyro.resetZAxisIntegrator();
+
+        double error, correction;
+
+//        inRange = false;
+
+        float gTime = 0;
+        float gTimeStart = System.currentTimeMillis();
+
+        boolean loopBreak = false;
+
+        runtime.reset();
+        while ((mrgyro.getIntegratedZValue() > (targetHeading)) && (!loopBreak)) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            correction = error * multiplicationFactor;
+
+//            gTime = System.currentTimeMillis() - gTimeStart;
+
+            if (runtime.milliseconds() < maxT) {
+                if (error > 0) {
+                    //AXIS LEFT
+                    motorFrontRight.setPower(-correction);
+                    motorFrontLeft.setPower(correction);
+                    motorBackLeft.setPower(correction);
+                    motorBackRight.setPower(-correction);
+                } else if (error < 0) {
+                    //AXIS RIGHT
+                    motorFrontRight.setPower(correction);
+                    motorFrontLeft.setPower(-correction);
+                    motorBackLeft.setPower(-correction);
+                    motorBackRight.setPower(correction);
+                } else {
+                    motorFrontRight.setPower(0);
+                    motorFrontLeft.setPower(0);
+                    motorBackLeft.setPower(0);
+                    motorBackRight.setPower(0);
+                }
+            } else {
+                loopBreak = true;
+            }
 
             telemetry.addData("FR", motorFrontRight.getPower());
             telemetry.addData("BR", motorBackRight.getPower());
@@ -1647,85 +1813,7 @@ public class Crater extends LinearOpMode {
 
     }
 
-    public void GYROAXISRIGHT (double targetHeading, double multiplicationFactor, double maxT) {
-
-        mrgyro.resetZAxisIntegrator();
-
-        double error, correction;
-
-//        inRange = false;
-
-        float gTime = 0;
-        float gTimeStart = System.currentTimeMillis();
-
-        while ((mrgyro.getIntegratedZValue() > (targetHeading+1)) && (gTime < maxT)) {
-            error = targetHeading - mrgyro.getIntegratedZValue();
-            correction = error * multiplicationFactor;
-
-            gTime = System.currentTimeMillis() - gTimeStart;
-
-            if (error > 0) {
-                //AXIS LEFT
-                motorFrontRight.setPower(-correction);
-                motorFrontLeft.setPower(correction);
-                motorBackLeft.setPower(correction);
-                motorBackRight.setPower(-correction);
-            } else if (error < 0) {
-                //AXIS RIGHT
-                motorFrontRight.setPower(correction);
-                motorFrontLeft.setPower(-correction);
-                motorBackLeft.setPower(-correction);
-                motorBackRight.setPower(correction);
-            } else {
-                motorFrontRight.setPower(0);
-                motorFrontLeft.setPower(0);
-                motorBackLeft.setPower(0);
-                motorBackRight.setPower(0);
-            }
-
-            telemetry.addData("FR", motorFrontRight.getPower());
-            telemetry.addData("BR", motorBackRight.getPower());
-            telemetry.addData("FL", motorFrontLeft.getPower());
-            telemetry.addData("BL", motorBackLeft.getPower());
-            telemetry.addData("z: ", mrgyro.getIntegratedZValue());
-            telemetry.update();
-        }
-
-        while (targetHeading != mrgyro.getIntegratedZValue()) {
-            error = targetHeading - mrgyro.getIntegratedZValue();
-            if (error > 0) {
-                //AXIS LEFT
-                motorFrontRight.setPower(0.1);
-                motorFrontLeft.setPower(-0.1);
-                motorBackLeft.setPower(-0.1);
-                motorBackRight.setPower(0.1);
-            } else if (error < 0) {
-                //AXIS RIGHT
-                motorFrontRight.setPower(-0.1);
-                motorFrontLeft.setPower(0.1);
-                motorBackLeft.setPower(0.1);
-                motorBackRight.setPower(-0.1);
-            } else {
-                motorFrontRight.setPower(0);
-                motorFrontLeft.setPower(0);
-                motorBackLeft.setPower(0);
-                motorBackRight.setPower(0);
-            }
-        }
-
-        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        motorFrontRight.setPower(0);
-        motorFrontLeft.setPower(0);
-        motorBackLeft.setPower(0);
-        motorBackRight.setPower(0);
-
-    }
-
-    public void GYRO_RBPIVOT (double targetHeading, double multiplicationFactor, double maxT) {
+    public void GYRO_LBPIVOT (double targetHeading, double multiplicationFactor, double maxT) {
 
         mrgyro.resetZAxisIntegrator();
 
@@ -1772,6 +1860,89 @@ public class Crater extends LinearOpMode {
             telemetry.addData("BL", motorBackLeft.getPower());
             telemetry.addData("z: ", mrgyro.getIntegratedZValue());
             telemetry.update();
+        }
+
+        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
+
+    }
+
+    public void GYRO_RBPIVOT (double targetHeading, double multiplicationFactor, double maxT) {
+
+        mrgyro.resetZAxisIntegrator();
+
+        double error, correction;
+
+//        inRange = false;
+
+        boolean loopBreak = false;
+
+        float gTime = 0;
+        float gTimeStart = System.currentTimeMillis();
+
+        runtime.reset();
+        while ((mrgyro.getIntegratedZValue() > targetHeading) && (!loopBreak)) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            correction = error * multiplicationFactor;
+
+            if (runtime.milliseconds() < maxT) {
+                if (error < 0) {
+                    //AXIS LEFT
+                    motorFrontRight.setPower(correction);
+                    motorFrontLeft.setPower(0);
+                    motorBackLeft.setPower(0);
+                    motorBackRight.setPower(correction);
+                } else if (error > 0) {
+                    //AXIS RIGHT
+                    motorFrontRight.setPower(-correction);
+                    motorFrontLeft.setPower(0);
+                    motorBackLeft.setPower(0);
+                    motorBackRight.setPower(-correction);
+                } else {
+                    motorFrontRight.setPower(0);
+                    motorFrontLeft.setPower(0);
+                    motorBackLeft.setPower(0);
+                    motorBackRight.setPower(0);
+                }
+            } else {
+                loopBreak = true;
+            }
+
+            telemetry.addData("FR", motorFrontRight.getPower());
+            telemetry.addData("BR", motorBackRight.getPower());
+            telemetry.addData("FL", motorFrontLeft.getPower());
+            telemetry.addData("BL", motorBackLeft.getPower());
+            telemetry.addData("z: ", mrgyro.getIntegratedZValue());
+            telemetry.update();
+        }
+
+        while (targetHeading != mrgyro.getIntegratedZValue()) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            if (error > 0) {
+                //BP LEFT
+                motorFrontRight.setPower(0.15);
+                motorFrontLeft.setPower(0);
+                motorBackLeft.setPower(0);
+                motorBackRight.setPower(0.15);
+            } else if (error < 0) {
+                //BP RIGHT
+                motorFrontRight.setPower(-0.15);
+                motorFrontLeft.setPower(0);
+                motorBackLeft.setPower(0);
+                motorBackRight.setPower(-0.15);
+            } else {
+                motorFrontRight.setPower(0);
+                motorFrontLeft.setPower(0);
+                motorBackLeft.setPower(0);
+                motorBackRight.setPower(0);
+            }
         }
 
         motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

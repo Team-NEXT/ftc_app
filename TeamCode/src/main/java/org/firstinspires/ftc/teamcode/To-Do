@@ -27,6 +27,8 @@
 
 13. ADD GYRO TURN TIMER!!!!!!!!!!!!!!
 
+14. ADD SEPARATE TELEMETRY THREAD?
+
 --> for wavy movement in auto: run motors at specific power to achieve desired path and move till gyro returns desired heading value
 
 //**To-Do**//
@@ -45,3 +47,8 @@
 ---------------------
 
 1. **MR gyro sensor needs to be attached to the robot
+
+
+
+-> dropping encoder limit
+-> new control code
