@@ -25,9 +25,9 @@ import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 
-@Autonomous(name = "MT - Crater", group = "final")
+@Autonomous(name = "MT - Depot", group = "final")
 
-public class multithreadedCrater extends LinearOpMode {
+public class multithreadedDepot extends LinearOpMode {
 
     //DRIVE
     private DcMotor motorFrontLeft;
@@ -62,6 +62,8 @@ public class multithreadedCrater extends LinearOpMode {
     private static double singleTicks = 13;
     private static double degree = 34;
 
+    private ElapsedTime runtime = new ElapsedTime();
+
 //    private double cSpeed;
 //    private double cExtPos;
 
@@ -92,9 +94,8 @@ public class multithreadedCrater extends LinearOpMode {
     private static IntegratingGyroscope gyro;
     private static ModernRoboticsI2cGyro mrgyro;
 
-    private ElapsedTime runtime = new ElapsedTime();
+    int mineralPos;
 
-    int mineralPos = 0;
     boolean detect = false;
     boolean detectionComplete = false;
 
@@ -162,7 +163,7 @@ public class multithreadedCrater extends LinearOpMode {
         dropperLimit = hardwareMap.get(ModernRoboticsTouchSensor.class, "D");
 
         dLoad = 0.71;
-        dUnload = 0.29;
+        dUnload = 0.31;
 
         dropperDC.setDirection(REVERSE);
 
@@ -179,9 +180,6 @@ public class multithreadedCrater extends LinearOpMode {
         yDown = 0.39;
 
         //INITIALIZATION
-
-        runtime.reset();
-
         dropperServo.setPosition(dLoad);
 
         xServo.setPosition(xUp);
@@ -201,6 +199,9 @@ public class multithreadedCrater extends LinearOpMode {
         telemetry.addLine("initialized");
         telemetry.update();
         //GYRO
+
+        mrgyro = hardwareMap.get(ModernRoboticsI2cGyro.class, "gyro");
+        gyro = (IntegratingGyroscope) mrgyro;
 
         // Set up detector
         detector = new GoldAlignDetector(); // Create detector
@@ -224,18 +225,17 @@ public class multithreadedCrater extends LinearOpMode {
 //        xReset = true;
 //        yReset = true;
 
-        mrgyro = hardwareMap.get(ModernRoboticsI2cGyro.class, "gyro");
-        gyro = (IntegratingGyroscope) mrgyro;
-
         // Wait until the gyro calibration is complete
         telemetry.log().add("Gyro Calibrating. Do Not Move!");
         mrgyro.calibrate();
+
         timer.reset();
         while (!isStopRequested() && mrgyro.isCalibrating())  {
             telemetry.addData("calibrating", "%s", Math.round(timer.seconds())%2==0 ? "|.." : "..|");
             telemetry.update();
             sleep(50);
         }
+
 
         telemetry.log().clear(); telemetry.log().add("Gyro Calibrated. Press Start.");
         telemetry.clear(); telemetry.update();
@@ -336,19 +336,18 @@ public class multithreadedCrater extends LinearOpMode {
 
                 /**IMAGE RECOGNITION*/
                 timer.reset();
-                detectionComplete = false;
                 detect = true;
                 while (!isStopRequested() && !detectionComplete)  {
                     telemetry.addData("processing vision", "%s", Math.round(timer.seconds())%2==0 ? "|.." : "..|");
                     telemetry.update();
                     try {
-                        Thread.sleep(2000);
+                        Thread.sleep(50);
                     } catch (InterruptedException e) {
                         telemetry.addLine("got interrupted");
                     }
                 }
 
-                BACKWARD(50, 0.2);
+                BACKWARD(38, 0.25);
 
                 try {
                     Thread.sleep(100);
@@ -356,72 +355,44 @@ public class multithreadedCrater extends LinearOpMode {
                     telemetry.addLine("got interrupted");
                 }
 
-                SWAYRIGHT(300);
-                RAMPFORWARD(890, 0.1, 0.1, 0.5, 0.05, 0.06);
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException e) {
-                    telemetry.addLine("got interrupted");
-                }
-                GYROAXISLEFT(42, 0.0074, 900);
-//        AXISLEFT(41, 0.3);
-                collectorDC.setPower(0);
-                collectorDC.setMode(STOP_AND_RESET_ENCODER);
-                collectorDC.setMode(RUN_USING_ENCODER);
-                while (collectorDC.getCurrentPosition() < 2000) {
-                    collectorDC.setPower(1);
-                }
-                collectorDC.setPower(0);
-                while (collectorServo.getPosition() < cMarker) {
-                    cPos = collectorServo.getPosition();
-                    cPos += 0.03;
-                    collectorServo.setPosition(cPos);
-                }
-                if (cPos > cMarker) {
-                    collectorServo.setPosition(cMarker);
-                }
-                sweeperServo.setPower(-1);
-                try {
-                    Thread.sleep(700);
-                } catch (InterruptedException e) {
-                    telemetry.addLine("got interrupted");
-                }
-                sweeperServo.setPower(0);
-                while (collectorDC.getCurrentPosition() > 500) {
-                    collectorDC.setPower(-1);
-                }
-                while (!collectorLimit.isPressed()) {
-                    collectorDC.setPower(-0.4);
-                }
-                collectorDC.setPower(0);
-                while (collectorServo.getPosition() > cClose) {
-                    cPos = collectorServo.getPosition();
-                    cPos -= 0.07;
-                    collectorServo.setPosition(cPos);
-                }
-                if (cPos < cClose) {
-                    collectorServo.setPosition(cClose);
-                }
+                /**CODE FOR IMAGE RECOGNITION*/
+
 
                 if (mineralPos == 1) {
-                    telemetry.addLine("case 1");
-                    telemetry.addLine("case 1");
-                    telemetry.addLine("case 1");
-                    telemetry.addLine("case 1");
-                    telemetry.addLine("case 1");
-                    telemetry.update();
-                    GYROAXISRIGHT(-41, 0.00864, 900);
-//            FORWARD(830, 0.3);
-                    RAMPBACKWARD(1050, -0.1, -0.1, -0.5, 0.05, 0.06);
-                    GYROAXISRIGHT(-85, 0.0049, 900);
-                    FORWARD(175, 0.3);
+                    SWAYRIGHT(210);
+
+                    GYROAXISRIGHT(-85, 0.005, 900);
                     collectorDC.setPower(0);
                     collectorDC.setMode(STOP_AND_RESET_ENCODER);
                     collectorDC.setMode(RUN_USING_ENCODER);
-                    while (collectorDC.getCurrentPosition() < 300) {
+                    while (collectorDC.getCurrentPosition() < 2000) {
                         collectorDC.setPower(1);
                     }
                     collectorDC.setPower(0);
+                    while (collectorServo.getPosition() < cMarker) {
+                        cPos = collectorServo.getPosition();
+                        cPos += 0.03;
+                        collectorServo.setPosition(cPos);
+                    }
+                    if (cPos > cMarker) {
+                        collectorServo.setPosition(cMarker);
+                    }
+                    sweeperServo.setPower(-1);
+                    try {
+                        Thread.sleep(700);
+                    } catch (InterruptedException e) {
+                        telemetry.addLine("got interrupted");
+                    }
+                    sweeperServo.setPower(0);
+                    while (collectorDC.getCurrentPosition() > 500) {
+                        collectorDC.setPower(-1);
+                    }
+                    while (!collectorLimit.isPressed()) {
+                        collectorDC.setPower(-0.4);
+                    }
+                    collectorDC.setPower(0);
+
+                    GYROAXISRIGHT(-33, 0.0062, 900);
                     while (collectorServo.getPosition() < cOpen) {
                         cPos = collectorServo.getPosition();
                         cPos += 0.05;
@@ -430,128 +401,58 @@ public class multithreadedCrater extends LinearOpMode {
                     if (cPos > cOpen) {
                         collectorServo.setPosition(cOpen);
                     }
-                    flapServo.setPosition(FC);
-                    sweeperServo.setPower(1);
-                    while (collectorDC.getCurrentPosition() < 900) {
-                        collectorDC.setPower(0.6);
-                    }
+                    SWEEPER(1);
+
                     collectorDC.setPower(0);
+                    FORWARD(250, 0.3);
                     try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        telemetry.addLine("got interrupted");
-                    }
-                    while (collectorServo.getPosition() > cMid) {
-                        cPos = collectorServo.getPosition();
-                        cPos -= 0.045;
-                        collectorServo.setPosition(cPos);
-                    }
-                    if (cPos < cMid) {
-                        collectorServo.setPosition(cMid);
-                    }
-                    while (collectorDC.getCurrentPosition() > 350) {
-                        collectorDC.setPower(-1);
-                    }
-                    collectorDC.setPower(0);
-                    while (!collectorLimit.isPressed()) {
-                        collectorDC.setPower(-0.4);
-                    }
-                    collectorDC.setPower(0);
-                    while (collectorServo.getPosition() > cClose) {
-                        cPos = collectorServo.getPosition();
-                        cPos -= 0.05;
-                        collectorServo.setPosition(cPos);
-                    }
-                    if (cPos < cClose) {
-                        collectorServo.setPosition(cClose);
-                    }
-                    flapServo.setPosition(FO);
-                    GYROAXISRIGHT(-15, 0.0075, 900);
-                    BACKWARD(85, 0.3);
-                    sweeperServo.setPower(0);
-                    DROP();
-                    collectorDC.setPower(0);
-                    collectorDC.setMode(STOP_AND_RESET_ENCODER);
-                    collectorDC.setMode(RUN_USING_ENCODER);
-                    while (collectorDC.getCurrentPosition() < 700) {
-                        collectorDC.setPower(1);
-                    }
-                    collectorDC.setPower(0);
-                    while (collectorServo.getPosition() < cOpen) {
-                        cPos = collectorServo.getPosition();
-                        cPos += 0.05;
-                        collectorServo.setPosition(cPos);
-                    }
-                    if (cPos > cOpen) {
-                        collectorServo.setPosition(cOpen);
-                    }
-                    flapServo.setPosition(FC);
-                    sweeperServo.setPower(1);
-                    while (collectorDC.getCurrentPosition() < 1450) {
-                        collectorDC.setPower(0.6);
-                    }
-                    collectorDC.setPower(0);
-                    try {
-                        Thread.sleep(400);
+                        Thread.sleep(700);
                     } catch (InterruptedException e) {
                         telemetry.addLine("got interrupted");
                     }
                     while (collectorServo.getPosition() > cMid) {
                         cPos = collectorServo.getPosition();
                         cPos -= 0.05;
-                        collectorServo.setPosition(cPos);
+                        collectorServo.setPosition(cMid);
                     }
                     if (cPos < cMid) {
                         collectorServo.setPosition(cMid);
                     }
-                    while (collectorDC.getCurrentPosition() > 420) {
-                        collectorDC.setPower(-1);
-                    }
-                    collectorDC.setPower(0);
-                    while (!collectorLimit.isPressed()) {
-                        collectorDC.setPower(-0.4);
-                    }
-                    collectorDC.setPower(0);
-                    while (collectorServo.getPosition() > cClose) {
-                        cPos = collectorServo.getPosition();
-                        cPos -= 0.05;
-                        collectorServo.setPosition(cPos);
-                    }
-                    if (cPos < cClose) {
-                        collectorServo.setPosition(cClose);
-                    }
-                    flapServo.setPosition(FO);
-                    try {
-                        Thread.sleep(600);
-                    } catch (InterruptedException e) {
-                        telemetry.addLine("got interrupted");
-                    }
-                    sweeperServo.setPower(0);
-                    halfDROP();
-                    collectorDC.setMode(STOP_AND_RESET_ENCODER);
-                    collectorDC.setMode(RUN_USING_ENCODER);
-                    while (collectorDC.getCurrentPosition() < 600) {
-                        collectorDC.setPower(1);
-                    }
-                    collectorDC.setPower(0);
-                    while (collectorServo.getPosition() < cMid) {
-                        cPos = collectorServo.getPosition();
-                        cPos += 0.8;
-                        collectorServo.setPosition(cPos);
-                    }
-                    if (cPos > cMid) {
-                        collectorServo.setPosition(cMid);
-                    }
-//            Thread.sleep(200);
-//            GYROAXISLEFT(124, 0.0048, 900);
-//            FORWARD(760, 0.3);
-//            GYROAXISLEFT(36, 0.0075, 900);
-//            Thread.sleep(200);
-//            FORWARD(50, 0.3);
+//            while (collectorDC.getCurrentPosition() > 350) {
+//                collectorDC.setPower(-1);
+//            }
 //            collectorDC.setPower(0);
+                    while (!collectorLimit.isPressed()) {
+                        collectorDC.setPower(-0.4);
+                    }
+                    collectorDC.setPower(0);
+                    while (collectorServo.getPosition() > cClose) {
+                        cPos = collectorServo.getPosition();
+                        cPos -= 0.05;
+                        collectorServo.setPosition(cPos);
+                    }
+                    if (cPos < cClose) {
+                        collectorServo.setPosition(cClose);
+                    }
+                    flapServo.setPosition(FO);
+                    GYROLEFTPIVOT(28, 0.0093, 900);
+                    BACKWARD(50, 0.2);
+                    SWEEPER(0);
+                    DROP();
+                    BACKWARD(130, 0.25);
+//            GYROAXISRIGHT(-69, 0.0056, 900);
+                    GYROAXISLEFT(96, 0.0043, 900);
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        telemetry.addLine("got interrupted");
+                    }
+                    RAMPFORWARD(830, 0.1, 0.1, 0.5, 0.01, 0.02);
+                    GYROAXISLEFT(17, 0.0087, 900);
+//            FORWARD(200, 0.3);
 //            collectorDC.setMode(STOP_AND_RESET_ENCODER);
 //            collectorDC.setMode(RUN_USING_ENCODER);
-//            while (collectorDC.getCurrentPosition() < 400) {
+//            while (collectorDC.getCurrentPosition()<350) {
 //                collectorDC.setPower(1);
 //            }
 //            collectorDC.setPower(0);
@@ -564,16 +465,16 @@ public class multithreadedCrater extends LinearOpMode {
 //                collectorServo.setPosition(cOpen);
 //            }
 //            flapServo.setPosition(FC);
-//            sweeperServo.setPower(1);
-//            while (collectorDC.getCurrentPosition() < 700) {
-//                collectorDC.setPower(0.4);
+//            SWEEPER(1);
+//            while (collectorDC.getCurrentPosition()<1200) {
+//                collectorDC.setPower(1);
 //            }
 //            collectorDC.setPower(0);
-//            Thread.sleep(600);
+//            Thread.sleep(500);
 //            while (collectorServo.getPosition() > cMid) {
 //                cPos = collectorServo.getPosition();
 //                cPos -= 0.05;
-//                collectorServo.setPosition(cPos);
+//                collectorServo.setPosition(cMid);
 //            }
 //            if (cPos < cMid) {
 //                collectorServo.setPosition(cMid);
@@ -595,65 +496,17 @@ public class multithreadedCrater extends LinearOpMode {
 //                collectorServo.setPosition(cClose);
 //            }
 //            flapServo.setPosition(FO);
-//            GYROAXISLEFT(46, 0.007, 900);
+//            Thread.sleep(1000);
 //            SWEEPER(0);
-//            DROPlow();
-//            while (collectorDC.getCurrentPosition() < 900) {
-//                collectorDC.setPower(1);
-//            }
-//            collectorDC.setPower(0);
-//            while (collectorServo.getPosition() < cOpen) {
-//                cPos = collectorServo.getPosition();
-//                cPos += 0.05;
-//                collectorServo.setPosition(cPos);
-//            }
-//            if (cPos > cOpen) {
-//                collectorServo.setPosition(cOpen);
-//            }
-//            flapServo.setPosition(FC);
-//            sweeperServo.setPower(1);
-//            while (collectorDC.getCurrentPosition() < 1400) {
-//                collectorDC.setPower(0.4);
-//            }
-//            collectorDC.setPower(0);
-//            Thread.sleep(800);
-//            while (collectorServo.getPosition() > cMid) {
-//                cPos = collectorServo.getPosition();
-//                cPos -= 0.05;
-//                collectorServo.setPosition(cPos);
-//            }
-//            if (cPos < cMid) {
-//                collectorServo.setPosition(cMid);
-//            }
-//            while (collectorDC.getCurrentPosition() > 420) {
-//                collectorDC.setPower(-1);
-//            }
-//            collectorDC.setPower(0);
-//            while (!collectorLimit.isPressed()) {
-//                collectorDC.setPower(-0.4);
-//            }
-//            collectorDC.setPower(0);
-//            while (collectorServo.getPosition() > cClose) {
-//                cPos = collectorServo.getPosition();
-//                cPos -= 0.05;
-//                collectorServo.setPosition(cPos);
-//            }
-//            if (cPos < cClose) {
-//                collectorServo.setPosition(cClose);
-//            }
-//            flapServo.setPosition(FO);
-//            Thread.sleep(600);
-//            sweeperServo.setPower(0);
-//            halfDROP_low();
 //            collectorDC.setMode(STOP_AND_RESET_ENCODER);
 //            collectorDC.setMode(RUN_USING_ENCODER);
-//            while (collectorDC.getCurrentPosition() < 950) {
+//            while (collectorDC.getCurrentPosition() < 550) {
 //                collectorDC.setPower(1);
 //            }
 //            collectorDC.setPower(0);
 //            while (collectorServo.getPosition() < cMid) {
 //                cPos = collectorServo.getPosition();
-//                cPos += 0.8;
+//                cPos += 0.05;
 //                collectorServo.setPosition(cPos);
 //            }
 //            if (cPos > cMid) {
@@ -662,21 +515,88 @@ public class multithreadedCrater extends LinearOpMode {
                 }
 
                 if (mineralPos == 2) {
-                    telemetry.addLine("2");
-                    telemetry.addLine("2");
-                    telemetry.addLine("2");
-                    telemetry.addLine("2");
-                    telemetry.addLine("2");
-                    telemetry.update();
-                    GYROAXISRIGHT(-41, 0.0087, 900);
-//            FORWARD(830, 0.3);
-                    RAMPBACKWARD(700, -0.1, -0.1, -0.5, 0.05, 0.06);
-                    GYROAXISRIGHT(-85, 0.0049, 900);
+                    SWAYRIGHT(310);
+
+                    GYROAXISRIGHT(-85, 0.005, 900);
+                    collectorDC.setPower(0);
+                    collectorDC.setMode(STOP_AND_RESET_ENCODER);
+                    collectorDC.setMode(RUN_USING_ENCODER);
+                    while (collectorDC.getCurrentPosition() < 2000) {
+                        collectorDC.setPower(1);
+                    }
+                    collectorDC.setPower(0);
+                    while (collectorServo.getPosition() < cMarker) {
+                        cPos = collectorServo.getPosition();
+                        cPos += 0.03;
+                        collectorServo.setPosition(cPos);
+                    }
+                    if (cPos > cMarker) {
+                        collectorServo.setPosition(cMarker);
+                    }
+                    sweeperServo.setPower(-1);
+                    try {
+                        Thread.sleep(700);
+                    } catch (InterruptedException e) {
+                        telemetry.addLine("got interrupted");
+                    }
+                    sweeperServo.setPower(0);
+                    while (collectorDC.getCurrentPosition() > 500) {
+                        collectorDC.setPower(-1);
+                    }
+                    while (!collectorLimit.isPressed()) {
+                        collectorDC.setPower(-0.4);
+                    }
+                    collectorDC.setPower(0);
+
+                    BACKWARD(50, 0.2);
+                    while (collectorServo.getPosition() < cOpen) {
+                        cPos = collectorServo.getPosition();
+                        cPos += 0.05;
+                        collectorServo.setPosition(cPos);
+                    }
+                    if (cPos > cOpen) {
+                        collectorServo.setPosition(cOpen);
+                    }
+                    SWEEPER(1);
+                    FORWARD(270, 0.27);
+                    try {
+                        Thread.sleep(700);
+                    } catch (InterruptedException e) {
+                        telemetry.addLine("got interrupted");
+                    }
+                    while (collectorServo.getPosition() > cClose) {
+                        cPos = collectorServo.getPosition();
+                        cPos -= 0.03;
+                        collectorServo.setPosition(cPos);
+                    }
+                    if (cPos < cClose) {
+                        collectorServo.setPosition(cClose);
+                    }
+                    flapServo.setPosition(FO);
+//            BACKWARD(50, 0.3);
+                    try {
+                        Thread.sleep(600);
+                    } catch (InterruptedException e) {
+                        telemetry.addLine("got interrupted");
+                    }
+                    SWEEPER(0);
+                    DROP();
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException e) {
+                        telemetry.addLine("got interrupted");
+                    }
+                    BACKWARD(180, 0.25);
+                    GYROAXISLEFT(85, 0.0049, 900);
+//            GYROAXISLEFT(85, 0.006, 900);
+//            RAMPFORWARD(500, 0.1, 0.1, 0.5, 0.05, 0.06);
+
+                    RAMPFORWARD(700, 0.1, 0.1, 0.4, 0.05, 0.06);
+                    GYROAXISLEFT(19, 0.0087, 900);
                     FORWARD(200, 0.3);
-                    collectorDC.setPower(0);
                     collectorDC.setMode(STOP_AND_RESET_ENCODER);
                     collectorDC.setMode(RUN_USING_ENCODER);
-                    while (collectorDC.getCurrentPosition() < 300) {
+                    while (collectorDC.getCurrentPosition()<350) {
                         collectorDC.setPower(1);
                     }
                     collectorDC.setPower(0);
@@ -689,20 +609,20 @@ public class multithreadedCrater extends LinearOpMode {
                         collectorServo.setPosition(cOpen);
                     }
                     flapServo.setPosition(FC);
-                    sweeperServo.setPower(1);
-                    while (collectorDC.getCurrentPosition() < 1000) {
-                        collectorDC.setPower(0.6);
+                    SWEEPER(1);
+                    while (collectorDC.getCurrentPosition()<1200) {
+                        collectorDC.setPower(1);
                     }
                     collectorDC.setPower(0);
                     try {
-                        Thread.sleep(600);
+                        Thread.sleep(500);
                     } catch (InterruptedException e) {
                         telemetry.addLine("got interrupted");
                     }
                     while (collectorServo.getPosition() > cMid) {
                         cPos = collectorServo.getPosition();
                         cPos -= 0.05;
-                        collectorServo.setPosition(cPos);
+                        collectorServo.setPosition(cMid);
                     }
                     if (cPos < cMid) {
                         collectorServo.setPosition(cMid);
@@ -724,106 +644,120 @@ public class multithreadedCrater extends LinearOpMode {
                         collectorServo.setPosition(cClose);
                     }
                     flapServo.setPosition(FO);
-//            tank(60, 0, -0.3);
-                    BACKWARD(80, 0.25);
-                    GYRO_RBPIVOT(-4, 0.07, 900);
                     try {
-                        Thread.sleep(400);
+                        Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         telemetry.addLine("got interrupted");
                     }
-                    sweeperServo.setPower(0);
-                    DROP();
-                    collectorDC.setPower(0);
+                    SWEEPER(0);
                     collectorDC.setMode(STOP_AND_RESET_ENCODER);
                     collectorDC.setMode(RUN_USING_ENCODER);
-                    while (collectorDC.getCurrentPosition() < 535) {
-                        collectorDC.setPower(1);
-                    }
-                    collectorDC.setPower(0);
-                    while (collectorServo.getPosition() < cOpen) {
-                        cPos = collectorServo.getPosition();
-                        cPos += 0.05;
-                        collectorServo.setPosition(cPos);
-                    }
-                    if (cPos > cOpen) {
-                        collectorServo.setPosition(cOpen);
-                    }
-                    flapServo.setPosition(FC);
-                    sweeperServo.setPower(1);
-                    while (collectorDC.getCurrentPosition() < 1300) {
-                        collectorDC.setPower(0.6);
-                    }
-                    collectorDC.setPower(0);
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        telemetry.addLine("got interrupted");
-                    }
-                    while (collectorServo.getPosition() > cMid) {
-                        cPos = collectorServo.getPosition();
-                        cPos -= 0.05;
-                        collectorServo.setPosition(cPos);
-                    }
-                    if (cPos < cMid) {
-                        collectorServo.setPosition(cMid);
-                    }
-                    while (collectorDC.getCurrentPosition() > 420) {
-                        collectorDC.setPower(-1);
-                    }
-                    collectorDC.setPower(0);
-                    while (!collectorLimit.isPressed()) {
-                        collectorDC.setPower(-0.4);
-                    }
-                    collectorDC.setPower(0);
-                    while (collectorServo.getPosition() > cClose) {
-                        cPos = collectorServo.getPosition();
-                        cPos -= 0.05;
-                        collectorServo.setPosition(cPos);
-                    }
-                    if (cPos < cClose) {
-                        collectorServo.setPosition(cClose);
-                    }
-                    flapServo.setPosition(FO);
-                    try {
-                        Thread.sleep(750);
-                    } catch (InterruptedException e) {
-                        telemetry.addLine("got interrupted");
-                    }
-                    sweeperServo.setPower(0);
-                    halfDROP();
-                    collectorDC.setMode(STOP_AND_RESET_ENCODER);
-                    collectorDC.setMode(RUN_USING_ENCODER);
-                    while (collectorDC.getCurrentPosition() < 600) {
+                    while (collectorDC.getCurrentPosition() < 550) {
                         collectorDC.setPower(1);
                     }
                     collectorDC.setPower(0);
                     while (collectorServo.getPosition() < cMid) {
                         cPos = collectorServo.getPosition();
-                        cPos += 0.8;
+                        cPos += 0.05;
                         collectorServo.setPosition(cPos);
                     }
                     if (cPos > cMid) {
                         collectorServo.setPosition(cMid);
                     }
                 }
-                /**3*/
+
                 if (mineralPos == 3) {
-                    telemetry.addLine("3");
-                    telemetry.addLine("3");
-                    telemetry.addLine("3");
-                    telemetry.addLine("3");
-                    telemetry.addLine("3");
-                    telemetry.update();
-                    GYROAXISRIGHT(-42, 0.0078, 900);
-//            FORWARD(830, 0.3);
-                    RAMPBACKWARD(500, -0.1, -0.1, -0.4, 0.05, 0.06);
-                    GYROAXISRIGHT(-85, 0.0049, 900);
-                    FORWARD(150, 0.3);
+                    SWAYRIGHT(210);
+
+                    GYROAXISRIGHT(-84, 0.0049, 900);
                     collectorDC.setPower(0);
                     collectorDC.setMode(STOP_AND_RESET_ENCODER);
                     collectorDC.setMode(RUN_USING_ENCODER);
-                    while (collectorDC.getCurrentPosition() < 300) {
+                    while (collectorDC.getCurrentPosition() < 2000) {
+                        collectorDC.setPower(1);
+                    }
+                    collectorDC.setPower(0);
+                    while (collectorServo.getPosition() < cMarker) {
+                        cPos = collectorServo.getPosition();
+                        cPos += 0.028;
+                        collectorServo.setPosition(cPos);
+                    }
+                    if (cPos > cMarker) {
+                        collectorServo.setPosition(cMarker);
+                    }
+                    sweeperServo.setPower(-1);
+                    try {
+                        Thread.sleep(700);
+                    } catch (InterruptedException e) {
+                        telemetry.addLine("got interrupted");
+                    }
+                    sweeperServo.setPower(0);
+                    while (collectorDC.getCurrentPosition() > 500) {
+                        collectorDC.setPower(-1);
+                    }
+                    while (!collectorLimit.isPressed()) {
+                        collectorDC.setPower(-0.4);
+                    }
+                    collectorDC.setPower(0);
+
+                    GYROAXISLEFT(42, 0.0062, 900);
+                    while (collectorServo.getPosition() < cOpen) {
+                        cPos = collectorServo.getPosition();
+                        cPos += 0.05;
+                        collectorServo.setPosition(cPos);
+                    }
+                    if (cPos > cOpen) {
+                        collectorServo.setPosition(cOpen);
+                    }
+                    SWEEPER(1);
+
+                    collectorDC.setPower(0);
+                    FORWARD(250, 0.3);
+                    try {
+                        Thread.sleep(700);
+                    } catch (InterruptedException e) {
+                        telemetry.addLine("got interrupted");
+                    }
+                    while (collectorServo.getPosition() > cMid) {
+                        cPos = collectorServo.getPosition();
+                        cPos -= 0.05;
+                        collectorServo.setPosition(cMid);
+                    }
+                    if (cPos < cMid) {
+                        collectorServo.setPosition(cMid);
+                    }
+//            while (collectorDC.getCurrentPosition() > 350) {
+//                collectorDC.setPower(-1);
+//            }
+//            collectorDC.setPower(0);
+                    while (!collectorLimit.isPressed()) {
+                        collectorDC.setPower(-0.4);
+                    }
+                    collectorDC.setPower(0);
+                    while (collectorServo.getPosition() > cClose) {
+                        cPos = collectorServo.getPosition();
+                        cPos -= 0.05;
+                        collectorServo.setPosition(cPos);
+                    }
+                    if (cPos < cClose) {
+                        collectorServo.setPosition(cClose);
+                    }
+                    flapServo.setPosition(FO);
+                    GYRORIGHTPIVOT(-24, 0.012, 900);
+                    BACKWARD(30, 0.2);
+                    SWEEPER(0);
+                    DROP();
+                    FORWARD(180, 0.3);
+                    GYROAXISLEFT(100, 0.0042, 900);
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException e) {
+                        telemetry.addLine("got interrupted");
+                    }
+                    RAMPFORWARD(450, 0.1, 0.1, 0.5, 0.01, 0.02);
+                    collectorDC.setMode(STOP_AND_RESET_ENCODER);
+                    collectorDC.setMode(RUN_USING_ENCODER);
+                    while (collectorDC.getCurrentPosition()<750) {
                         collectorDC.setPower(1);
                     }
                     collectorDC.setPower(0);
@@ -836,20 +770,20 @@ public class multithreadedCrater extends LinearOpMode {
                         collectorServo.setPosition(cOpen);
                     }
                     flapServo.setPosition(FC);
-                    sweeperServo.setPower(1);
-                    while (collectorDC.getCurrentPosition() < 1000) {
-                        collectorDC.setPower(0.6);
+                    SWEEPER(1);
+                    while (collectorDC.getCurrentPosition()<1800) {
+                        collectorDC.setPower(0.8);
                     }
                     collectorDC.setPower(0);
                     try {
-                        Thread.sleep(600);
+                        Thread.sleep(500);
                     } catch (InterruptedException e) {
                         telemetry.addLine("got interrupted");
                     }
                     while (collectorServo.getPosition() > cMid) {
                         cPos = collectorServo.getPosition();
                         cPos -= 0.05;
-                        collectorServo.setPosition(cPos);
+                        collectorServo.setPosition(cMid);
                     }
                     if (cPos < cMid) {
                         collectorServo.setPosition(cMid);
@@ -871,102 +805,28 @@ public class multithreadedCrater extends LinearOpMode {
                         collectorServo.setPosition(cClose);
                     }
                     flapServo.setPosition(FO);
-                    BACKWARD(50, 0.3);
-                    GYROAXISLEFT(6, 0.0095, 900);
-                    DROP();
-                    collectorDC.setPower(0);
-                    collectorDC.setMode(STOP_AND_RESET_ENCODER);
-                    collectorDC.setMode(RUN_USING_ENCODER);
-                    while (collectorDC.getCurrentPosition() < 535) {
-                        collectorDC.setPower(1);
-                    }
-                    collectorDC.setPower(0);
-                    while (collectorServo.getPosition() < cOpen) {
-                        cPos = collectorServo.getPosition();
-                        cPos += 0.05;
-                        collectorServo.setPosition(cPos);
-                    }
-                    if (cPos > cOpen) {
-                        collectorServo.setPosition(cOpen);
-                    }
-                    flapServo.setPosition(FC);
-                    sweeperServo.setPower(1);
-                    while (collectorDC.getCurrentPosition() < 1350) {
-                        collectorDC.setPower(0.6);
-                    }
-                    collectorDC.setPower(0);try {
-                        Thread.sleep(750);
+                    try {
+                        Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         telemetry.addLine("got interrupted");
                     }
-                    while (collectorServo.getPosition() > cMid) {
-                        cPos = collectorServo.getPosition();
-                        cPos -= 0.05;
-                        collectorServo.setPosition(cPos);
-                    }
-                    if (cPos < cMid) {
-                        collectorServo.setPosition(cMid);
-                    }
-                    while (collectorDC.getCurrentPosition() > 420) {
-                        collectorDC.setPower(-1);
-                    }
-                    collectorDC.setPower(0);
-                    while (!collectorLimit.isPressed()) {
-                        collectorDC.setPower(-0.4);
-                    }
-                    collectorDC.setPower(0);
-                    while (collectorServo.getPosition() > cClose) {
-                        cPos = collectorServo.getPosition();
-                        cPos -= 0.05;
-                        collectorServo.setPosition(cPos);
-                    }
-                    if (cPos < cClose) {
-                        collectorServo.setPosition(cClose);
-                    }
-                    flapServo.setPosition(FO);try {
-                        Thread.sleep(750);
-                    } catch (InterruptedException e) {
-                        telemetry.addLine("got interrupted");
-                    }
-                    sweeperServo.setPower(0);
-                    halfDROP();
+                    SWEEPER(0);
                     collectorDC.setMode(STOP_AND_RESET_ENCODER);
                     collectorDC.setMode(RUN_USING_ENCODER);
-                    while (collectorDC.getCurrentPosition() < 600) {
+                    while (collectorDC.getCurrentPosition() < 750) {
                         collectorDC.setPower(1);
                     }
                     collectorDC.setPower(0);
                     while (collectorServo.getPosition() < cMid) {
                         cPos = collectorServo.getPosition();
-                        cPos += 0.8;
+                        cPos += 0.05;
                         collectorServo.setPosition(cPos);
                     }
                     if (cPos > cMid) {
                         collectorServo.setPosition(cMid);
                     }
                 }
-                /**TO TEST RANDOM SHIT*/
-                if (mineralPos == 4) {
-                    collectorDC.setMode(STOP_AND_RESET_ENCODER);
-                    collectorDC.setMode(RUN_USING_ENCODER);
-                    dropperDC.setMode(STOP_AND_RESET_ENCODER);
-                    dropperDC.setMode(RUN_USING_ENCODER);
-                    collectorDC.setTargetPosition(1800);
-                    dropperDC.setTargetPosition(900);
-                    collectorDC.setMode(RUN_TO_POSITION);
-                    dropperDC.setMode(RUN_TO_POSITION);
-                }
-//
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException e) {
-                    telemetry.addLine("got interrupted");
-                }
-//        COLLECTORCONTRACT(0.8);
-//
-                loopComplete = true;
-                telemetry.addLine("loopComplete = true");
-                telemetry.update();
+////
             }
         }
     }
@@ -1076,6 +936,13 @@ public class multithreadedCrater extends LinearOpMode {
         yAxisDC.setMode(STOP_AND_RESET_ENCODER);
         yAxisDC.setMode(RUN_USING_ENCODER);
 
+//        try {
+//            Thread.sleep(100);
+//        } catch (InterruptedException e) {
+//            telemetry.addLine("RF INTERRPUTED");
+//            telemetry.update();
+//        }
+
         while ((targetTicks - 100) > Math.abs(yAxisDC.getCurrentPosition())) {
 
             if (Math.abs(yAxisDC.getCurrentPosition()) <= (targetTicks/2)) {
@@ -1091,57 +958,6 @@ public class multithreadedCrater extends LinearOpMode {
                     power = endPower;
                 } else {
                     power -= decrement;
-                }
-            }
-
-            motorFrontRight.setPower(power);
-            motorFrontLeft.setPower(power);
-            motorBackLeft.setPower(power);
-            motorBackRight.setPower(power);
-
-            telemetry.addData("FR", motorFrontRight.getPower());
-            telemetry.addData("BR", motorBackRight.getPower());
-            telemetry.addData("FL", motorFrontLeft.getPower());
-            telemetry.addData("BL", motorBackLeft.getPower());
-            telemetry.addData("y: ", Math.abs(yAxisDC.getCurrentPosition()));
-            telemetry.update();
-        }
-
-        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        motorFrontRight.setPower(0);
-        motorFrontLeft.setPower(0);
-        motorBackLeft.setPower(0);
-        motorBackRight.setPower(0);
-
-    }
-
-    public void RAMPBACKWARD (int mmDistance, double startPower, double endPower, double maxPower, double increment, double decrement) {
-
-        double targetTicks = mmDistance * singleTicks;
-        double power = startPower;
-
-        yAxisDC.setMode(STOP_AND_RESET_ENCODER);
-        yAxisDC.setMode(RUN_USING_ENCODER);
-
-        while ((targetTicks - 100) > Math.abs(yAxisDC.getCurrentPosition())) {
-
-            if (Math.abs(yAxisDC.getCurrentPosition()) <= (targetTicks/2)) {
-                telemetry.addData("RUP", "");
-                if (power < maxPower) {
-                    power = maxPower;
-                } else {
-                    power -= increment;
-                }
-            } else if (Math.abs(yAxisDC.getCurrentPosition()) >= (targetTicks/2)) {
-                telemetry.addData("RD", "");
-                if (power > endPower) {
-                    power = endPower;
-                } else {
-                    power += decrement;
                 }
             }
 
@@ -1432,9 +1248,9 @@ public class multithreadedCrater extends LinearOpMode {
 
         while ((targetTicks-100) > Math.abs(latchingDC.getCurrentPosition())) {
             motorFrontRight.setPower(-0.43);
-            motorBackRight.setPower(0.4);
+            motorBackRight.setPower(0.39);
             motorFrontLeft.setPower(0.43);
-            motorBackLeft.setPower(-0.4);
+            motorBackLeft.setPower(-0.39);
 
             telemetry.addData("FR", motorFrontRight.getPower());
             telemetry.addData("BR", motorBackRight.getPower());
@@ -1842,7 +1658,7 @@ public class multithreadedCrater extends LinearOpMode {
         dropperDC.setPower(0);
         while (dropperServo.getPosition() > dUnload) {
             dPos = dropperServo.getPosition();
-            dPos -= 0.035;
+            dPos -= 0.04;
             dropperServo.setPosition(dPos);
         }
         if (dPos < dUnload) {
@@ -1930,13 +1746,13 @@ public class multithreadedCrater extends LinearOpMode {
         if (cPos < cDrop) {
             collectorServo.setPosition(cDrop);
         }
-        while (dropperDC.getCurrentPosition() < 900) {
+        while (dropperDC.getCurrentPosition() < 1000) {
             dropperDC.setPower(1);
         }
         dropperDC.setPower(0);
         while (dropperServo.getPosition() > dUnload) {
             dPos = dropperServo.getPosition();
-            dPos -= 0.035;
+            dPos -= 0.04;
             dropperServo.setPosition(dPos);
         }
         if (dPos < dUnload) {
@@ -1955,7 +1771,7 @@ public class multithreadedCrater extends LinearOpMode {
         if (cPos < cDrop) {
             collectorServo.setPosition(cDrop);
         }
-        while (dropperDC.getCurrentPosition() < 800) {
+        while (dropperDC.getCurrentPosition() < 900) {
             dropperDC.setPower(1);
         }
         dropperDC.setPower(0);
@@ -2077,6 +1893,97 @@ public class multithreadedCrater extends LinearOpMode {
 
     }
 
+    public void nrGYROAXISLEFT (double targetHeading, double multiplicationFactor, double maxT) {
+
+//        mrgyro.resetZAxisIntegrator();
+
+        double error, correction;
+
+//        inRange = false;
+
+        boolean loopBreak = false;
+
+        float gTime = 0;
+        float gTimeStart = System.currentTimeMillis();
+
+        while ((mrgyro.getIntegratedZValue() < (targetHeading-1)) && !loopBreak) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            correction = error * multiplicationFactor;
+
+            gTime = System.currentTimeMillis() - gTimeStart;
+
+            if (gTime < maxT) {
+                if (error > 0) {
+                    //AXIS LEFT
+                    motorFrontRight.setPower(correction);
+                    motorFrontLeft.setPower(-correction);
+                    motorBackLeft.setPower(-correction);
+                    motorBackRight.setPower(correction);
+                } else if (error < 0) {
+                    //AXIS RIGHT
+                    motorFrontRight.setPower(-correction);
+                    motorFrontLeft.setPower(correction);
+                    motorBackLeft.setPower(correction);
+                    motorBackRight.setPower(-correction);
+                } else {
+                    motorFrontRight.setPower(0);
+                    motorFrontLeft.setPower(0);
+                    motorBackLeft.setPower(0);
+                    motorBackRight.setPower(0);
+                }
+            }
+
+//            if (maxT > gTime) {
+//                motorFrontRight.setPower(correction);
+//                motorFrontLeft.setPower(-correction);
+//                motorBackLeft.setPower(-correction);
+//                motorBackRight.setPower(correction);
+//            } else {
+//                loopBreak = true;
+//            }
+
+            telemetry.addData("FR", motorFrontRight.getPower());
+            telemetry.addData("BR", motorBackRight.getPower());
+            telemetry.addData("FL", motorFrontLeft.getPower());
+            telemetry.addData("BL", motorBackLeft.getPower());
+            telemetry.addData("z: ", mrgyro.getIntegratedZValue());
+            telemetry.update();
+        }
+
+        while (targetHeading != mrgyro.getIntegratedZValue()) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            if (error > 0) {
+                //AXIS LEFT
+                motorFrontRight.setPower(0.15);
+                motorFrontLeft.setPower(-0.15);
+                motorBackLeft.setPower(-0.15);
+                motorBackRight.setPower(0.15);
+            } else if (error < 0) {
+                //AXIS RIGHT
+                motorFrontRight.setPower(-0.15);
+                motorFrontLeft.setPower(0.15);
+                motorBackLeft.setPower(0.15);
+                motorBackRight.setPower(-0.15);
+            } else {
+                motorFrontRight.setPower(0);
+                motorFrontLeft.setPower(0);
+                motorBackLeft.setPower(0);
+                motorBackRight.setPower(0);
+            }
+        }
+
+        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
+
+    }
+
     public void GYROAXISRIGHT (double targetHeading, double multiplicationFactor, double maxT) {
 
         mrgyro.resetZAxisIntegrator();
@@ -2162,7 +2069,85 @@ public class multithreadedCrater extends LinearOpMode {
 
     }
 
-    public void GYRO_LBPIVOT (double targetHeading, double multiplicationFactor, double maxT) {
+    public void nrGYROAXISRIGHT (double targetHeading, double multiplicationFactor, double maxT) {
+
+//        mrgyro.resetZAxisIntegrator();
+
+        double error, correction;
+
+//        inRange = false;
+
+        float gTime = 0;
+        float gTimeStart = System.currentTimeMillis();
+
+        while ((mrgyro.getIntegratedZValue() > (targetHeading+1)) && (gTime < maxT)) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            correction = error * multiplicationFactor;
+
+            gTime = System.currentTimeMillis() - gTimeStart;
+
+            if (error > 0) {
+                //AXIS LEFT
+                motorFrontRight.setPower(-correction);
+                motorFrontLeft.setPower(correction);
+                motorBackLeft.setPower(correction);
+                motorBackRight.setPower(-correction);
+            } else if (error < 0) {
+                //AXIS RIGHT
+                motorFrontRight.setPower(correction);
+                motorFrontLeft.setPower(-correction);
+                motorBackLeft.setPower(-correction);
+                motorBackRight.setPower(correction);
+            } else {
+                motorFrontRight.setPower(0);
+                motorFrontLeft.setPower(0);
+                motorBackLeft.setPower(0);
+                motorBackRight.setPower(0);
+            }
+
+            telemetry.addData("FR", motorFrontRight.getPower());
+            telemetry.addData("BR", motorBackRight.getPower());
+            telemetry.addData("FL", motorFrontLeft.getPower());
+            telemetry.addData("BL", motorBackLeft.getPower());
+            telemetry.addData("z: ", mrgyro.getIntegratedZValue());
+            telemetry.update();
+        }
+
+        while (targetHeading != mrgyro.getIntegratedZValue()) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            if (error > 0) {
+                //AXIS LEFT
+                motorFrontRight.setPower(0.15);
+                motorFrontLeft.setPower(-0.15);
+                motorBackLeft.setPower(-0.15);
+                motorBackRight.setPower(0.15);
+            } else if (error < 0) {
+                //AXIS RIGHT
+                motorFrontRight.setPower(-0.15);
+                motorFrontLeft.setPower(0.15);
+                motorBackLeft.setPower(0.15);
+                motorBackRight.setPower(-0.15);
+            } else {
+                motorFrontRight.setPower(0);
+                motorFrontLeft.setPower(0);
+                motorBackLeft.setPower(0);
+                motorBackRight.setPower(0);
+            }
+        }
+
+        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
+
+    }
+
+    public void GYRO_RBPIVOT (double targetHeading, double multiplicationFactor, double maxT) {
 
         mrgyro.resetZAxisIntegrator();
 
@@ -2223,7 +2208,87 @@ public class multithreadedCrater extends LinearOpMode {
 
     }
 
-    public void GYRO_RBPIVOT (double targetHeading, double multiplicationFactor, double maxT) {
+    public void GYROleftpivotF (double targetHeading, double multiplicationFactor, double maxT) {
+
+        mrgyro.resetZAxisIntegrator();
+
+        double error, correction;
+
+        boolean loopBreak = false;
+
+        float gTime = 0;
+        float gTimeStart = System.currentTimeMillis();
+
+        while ((mrgyro.getIntegratedZValue() < (targetHeading-1)) && !loopBreak) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            correction = error * multiplicationFactor;
+
+            gTime = System.currentTimeMillis() - gTimeStart;
+
+            if (gTime < maxT) {
+                if (error > 0) {
+                    //AXIS LEFT
+                    motorFrontRight.setPower(correction);
+                    motorFrontLeft.setPower(0);
+                    motorBackLeft.setPower(0);
+                    motorBackRight.setPower(correction);
+                } else if (error < 0) {
+                    //AXIS RIGHT
+                    motorFrontRight.setPower(-correction);
+                    motorFrontLeft.setPower(0);
+                    motorBackLeft.setPower(0);
+                    motorBackRight.setPower(-correction);
+                } else {
+                    motorFrontRight.setPower(0);
+                    motorFrontLeft.setPower(0);
+                    motorBackLeft.setPower(0);
+                    motorBackRight.setPower(0);
+                }
+            }
+
+            telemetry.addData("FR", motorFrontRight.getPower());
+            telemetry.addData("BR", motorBackRight.getPower());
+            telemetry.addData("FL", motorFrontLeft.getPower());
+            telemetry.addData("BL", motorBackLeft.getPower());
+            telemetry.addData("z: ", mrgyro.getIntegratedZValue());
+            telemetry.update();
+        }
+
+        while (targetHeading != mrgyro.getIntegratedZValue()) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            if (error > 0) {
+                //AXIS LEFT
+                motorFrontRight.setPower(0.15);
+                motorFrontLeft.setPower(0);
+                motorBackLeft.setPower(0);
+                motorBackRight.setPower(0.15);
+            } else if (error < 0) {
+                //AXIS RIGHT
+                motorFrontRight.setPower(-0.15);
+                motorFrontLeft.setPower(0);
+                motorBackLeft.setPower(0);
+                motorBackRight.setPower(-0.15);
+            } else {
+                motorFrontRight.setPower(0);
+                motorFrontLeft.setPower(0);
+                motorBackLeft.setPower(0);
+                motorBackRight.setPower(0);
+            }
+        }
+
+        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
+
+    }
+
+    public void GYROLEFTPIVOT (double targetHeading, double multiplicationFactor, double maxT) {
 
         mrgyro.resetZAxisIntegrator();
 
@@ -2237,18 +2302,18 @@ public class multithreadedCrater extends LinearOpMode {
         float gTimeStart = System.currentTimeMillis();
 
         runtime.reset();
-        while ((mrgyro.getIntegratedZValue() > targetHeading) && (!loopBreak)) {
+        while ((mrgyro.getIntegratedZValue() < targetHeading) && (!loopBreak)) {
             error = targetHeading - mrgyro.getIntegratedZValue();
             correction = error * multiplicationFactor;
 
             if (runtime.milliseconds() < maxT) {
-                if (error < 0) {
+                if (error > 0) {
                     //AXIS LEFT
                     motorFrontRight.setPower(correction);
                     motorFrontLeft.setPower(0);
                     motorBackLeft.setPower(0);
                     motorBackRight.setPower(correction);
-                } else if (error > 0) {
+                } else if (error < 0) {
                     //AXIS RIGHT
                     motorFrontRight.setPower(-correction);
                     motorFrontLeft.setPower(0);
@@ -2286,6 +2351,89 @@ public class multithreadedCrater extends LinearOpMode {
                 motorFrontLeft.setPower(0);
                 motorBackLeft.setPower(0);
                 motorBackRight.setPower(-0.15);
+            } else {
+                motorFrontRight.setPower(0);
+                motorFrontLeft.setPower(0);
+                motorBackLeft.setPower(0);
+                motorBackRight.setPower(0);
+            }
+        }
+
+        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
+
+    }
+
+    public void GYRORIGHTPIVOT (double targetHeading, double multiplicationFactor, double maxT) {
+
+        mrgyro.resetZAxisIntegrator();
+
+        double error, correction;
+
+//        inRange = false;
+
+        boolean loopBreak = false;
+
+        float gTime = 0;
+        float gTimeStart = System.currentTimeMillis();
+
+        runtime.reset();
+        while ((mrgyro.getIntegratedZValue() > targetHeading) && (!loopBreak)) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            correction = error * multiplicationFactor;
+
+            if (runtime.milliseconds() < maxT) {
+                if (error < 0) {
+                    //AXIS LEFT
+                    motorFrontRight.setPower(0);
+                    motorFrontLeft.setPower(-correction);
+                    motorBackLeft.setPower(-correction);
+                    motorBackRight.setPower(0);
+                } else if (error > 0) {
+                    //AXIS RIGHT
+                    motorFrontRight.setPower(0);
+                    motorFrontLeft.setPower(correction);
+                    motorBackLeft.setPower(correction);
+                    motorBackRight.setPower(0);
+                } else {
+                    motorFrontRight.setPower(0);
+                    motorFrontLeft.setPower(0);
+                    motorBackLeft.setPower(0);
+                    motorBackRight.setPower(0);
+                }
+            } else {
+                loopBreak = true;
+            }
+
+            telemetry.addData("FR", motorFrontRight.getPower());
+            telemetry.addData("BR", motorBackRight.getPower());
+            telemetry.addData("FL", motorFrontLeft.getPower());
+            telemetry.addData("BL", motorBackLeft.getPower());
+            telemetry.addData("z: ", mrgyro.getIntegratedZValue());
+            telemetry.update();
+        }
+
+        while (targetHeading != mrgyro.getIntegratedZValue()) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            if (error < 0) {
+                //BP LEFT
+                motorFrontRight.setPower(0);
+                motorFrontLeft.setPower(0.15);
+                motorBackLeft.setPower(0.15);
+                motorBackRight.setPower(0);
+            } else if (error > 0) {
+                //BP RIGHT
+                motorFrontRight.setPower(0);
+                motorFrontLeft.setPower(-0.15);
+                motorBackLeft.setPower(-0.15);
+                motorBackRight.setPower(0);
             } else {
                 motorFrontRight.setPower(0);
                 motorFrontLeft.setPower(0);

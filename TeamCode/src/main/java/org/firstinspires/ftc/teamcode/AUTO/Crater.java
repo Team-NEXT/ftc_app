@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode.AUTO;
 
 import android.view.Display;
 
+import com.disnodeteam.dogecv.CameraViewDisplay;
+import com.disnodeteam.dogecv.DogeCV;
+import com.disnodeteam.dogecv.detectors.roverrukus.GoldAlignDetector;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsTouchSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -91,6 +94,8 @@ public class Crater extends LinearOpMode {
     private static ModernRoboticsI2cGyro mrgyro;
 
     private ElapsedTime runtime = new ElapsedTime();
+
+    private GoldAlignDetector detector;
 
     int mineralPos;
 
@@ -188,6 +193,25 @@ public class Crater extends LinearOpMode {
         }
         collectorDC.setPower(0);
 
+        // Set up detector
+        detector = new GoldAlignDetector(); // Create detector
+        detector.init(hardwareMap.appContext, CameraViewDisplay.getInstance()); // Initialize it with the app context and camera
+        detector.useDefaults(); // Set detector to use default settings
+
+        // Optional tuning
+        detector.alignSize = 200; // How wide (in pixels) is the range in which the gold object will be aligned. (Represented by green bars in the preview)
+        detector.alignPosOffset = 0; // How far from center frame to offset this alignment zone.
+        detector.downscale = 0.4; // How much to downscale the input frames
+
+        detector.areaScoringMethod = DogeCV.AreaScoringMethod.MAX_AREA; // Can also be PERFECT_AREA
+        //detector.perfectAreaScorer.perfectArea = 10000; // if using PERFECT_AREA scoring
+        detector.maxAreaScorer.weight = 0.005; //
+
+        detector.ratioScorer.weight = 5; //
+        detector.ratioScorer.perfectRatio = 1.0; // Ratio adjustment
+
+        detector.enable(); // Start the detector!
+
         collectorServo.setPosition(cInitial);
 
         telemetry.addLine("initialized");
@@ -211,7 +235,7 @@ public class Crater extends LinearOpMode {
         telemetry.log().clear(); telemetry.log().add("Gyro Calibrated. Press Start.");
         telemetry.clear(); telemetry.update();
 
-        mineralPos = 4;
+//        mineralPos = 4;
 
         waitForStart();
 
@@ -224,7 +248,37 @@ public class Crater extends LinearOpMode {
         yServo.setPosition(yDown);
         xServo.setPosition(xDown);
 
+        if (detector.isFound()) {
+            if (detector.getAligned()) {
+                telemetry.addLine("found: 2");
+                telemetry.addLine("found: 2");
+                telemetry.addLine("found: 2");
+                telemetry.addLine("found: 2");
+                telemetry.addLine("found: 2");
+                telemetry.update();
+                mineralPos = 2;
+            } else {
+                telemetry.addLine("found: 3");
+                telemetry.addLine("found: 3");
+                telemetry.addLine("found: 3");
+                telemetry.addLine("found: 3");
+                telemetry.addLine("found: 3");
+                telemetry.update();
+                mineralPos = 3;
+            }
+        } else {
+            telemetry.addLine("found: 1");
+            telemetry.addLine("found: 1");
+            telemetry.addLine("found: 1");
+            telemetry.addLine("found: 1");
+            telemetry.addLine("found: 1");
+            telemetry.update();
+            mineralPos = 1;
+        }
+
         BACKWARD(50, 0.2);
+
+        detector.disable();
 
         Thread.sleep(100);
 
@@ -267,6 +321,9 @@ public class Crater extends LinearOpMode {
         if (cPos < cClose) {
             collectorServo.setPosition(cClose);
         }
+
+        telemetry.addData("mineralPos: ", mineralPos);
+        telemetry.update();
 
         if (mineralPos == 1) {
             GYROAXISRIGHT(-41, 0.00864, 900);
@@ -760,10 +817,12 @@ public class Crater extends LinearOpMode {
             collectorDC.setMode(RUN_USING_ENCODER);
             dropperDC.setMode(STOP_AND_RESET_ENCODER);
             dropperDC.setMode(RUN_USING_ENCODER);
-            collectorDC.setTargetPosition(1800);
-            dropperDC.setTargetPosition(900);
             collectorDC.setMode(RUN_TO_POSITION);
             dropperDC.setMode(RUN_TO_POSITION);
+            dropperDC.setTargetPosition(900);
+            collectorDC.setTargetPosition(1800);
+            dropperDC.setPower(1);
+            collectorDC.setPower(1);
         }
 //
         Thread.sleep(1000);

@@ -84,6 +84,8 @@ public class altControls extends LinearOpMode {
 
     public boolean dExit = false, cExit = false;
 
+    public double rightStickVal = 0;
+
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -115,7 +117,7 @@ public class altControls extends LinearOpMode {
         //COLLECTOR
         collectorDC = hardwareMap.dcMotor.get("collectDC");
         sweeperServo = hardwareMap.crservo.get("sweepServo");
-        sweeperServo.setDirection(REVERSE);
+//        sweeperServo.setDirection(REVERSE);
         flapServo = hardwareMap.servo.get("flapServo");
         collectorServo = hardwareMap.servo.get("cServo");
         collectorLimit = hardwareMap.get(ModernRoboticsTouchSensor.class, "C");
@@ -198,7 +200,13 @@ public class altControls extends LinearOpMode {
 
             while (!isInterrupted()) {
 
-                gamepad1.setJoystickDeadzone(0.15f); //TEST
+//                gamepad1.setJoystickDeadzone(0.2f); //TEST
+
+                if (Math.abs(gamepad1.right_stick_x) <= 0.18) {
+                    rightStickVal = 0;
+                } else {
+                    rightStickVal = gamepad1.right_stick_x;
+                }
 
                 /**DRIVING*/
                 if (!gamepad1.left_stick_button && !gamepad1.dpad_up && !gamepad1.dpad_left && !gamepad1.dpad_down && !gamepad1.dpad_right) {
@@ -211,7 +219,7 @@ public class altControls extends LinearOpMode {
                     double robotAngle = Math.atan2(-gamepad1.left_stick_y, gamepad1.left_stick_x) - Math.PI / 4;
                     telemetry.addData("robotAngle = ", robotAngle);
 
-                    double rightStickModifier = -gamepad1.right_stick_x;
+                    double rightStickModifier = -rightStickVal;
                     telemetry.addData("rightX = ", rightStickModifier);
 
                     final double v1 = hypot * Math.cos(robotAngle) + rightStickModifier;
@@ -296,7 +304,7 @@ public class altControls extends LinearOpMode {
                     double robotAngle = Math.atan2(-(gamepad1.left_stick_y*0.5), (gamepad1.left_stick_x*0.5)) - Math.PI / 4;
                     telemetry.addData("robotAngle = ", robotAngle);
 
-                    double rightStickModifier = -(gamepad1.right_stick_x*0.5);
+                    double rightStickModifier = -(rightStickVal*0.5);
                     telemetry.addData("rightX = ", rightStickModifier);
 
                     final double v1 = hypot * Math.cos(robotAngle) + rightStickModifier;
@@ -375,13 +383,13 @@ public class altControls extends LinearOpMode {
                         cPos = cOpen;
                         collectorServo.setPosition(cPos);
                     }
-                    sweeperServo.setPower(1);
+                    sweeperServo.setPower(-1);
                 }
 
                 if (gamepad1.right_bumper) {
                     flapServo.setPosition(FC);
 
-                    sweeperServo.setPower(1);
+                    sweeperServo.setPower(-1);
 
                     cExit = false;
 
@@ -396,7 +404,7 @@ public class altControls extends LinearOpMode {
                         collectorServo.setPosition(cPos);
                     }
 
-                    sweeperServo.setPower(0.6);
+                    sweeperServo.setPower(-0.6);
 
                     while (collectorDC.getCurrentPosition() > 400 && !cExit) {
                         collectorDC.setPower(-1);
@@ -427,13 +435,13 @@ public class altControls extends LinearOpMode {
                     flapServo.setPosition(FO);
                 }
                 if (gamepad1.a && !gamepad1.b && !gamepad1.y) {
-                    sweeperServo.setPower(-0.8);
+                    sweeperServo.setPower(1);
                 }
                 if (!gamepad1.a && gamepad1.b && !gamepad1.y) {
                     sweeperServo.setPower(0);
                 }
                 if (!gamepad1.a && !gamepad1.b && gamepad1.y) {
-                    sweeperServo.setPower(1);
+                    sweeperServo.setPower(-1);
                 }
                 if (gamepad1.x) {
                     if (collectorServo.getPosition() > 0.7) {
@@ -681,6 +689,7 @@ public class altControls extends LinearOpMode {
                 }
                 if (gamepad1.right_stick_button) {
                     cExit = true;
+                    sweeperServo.resetDeviceConfigurationForOpMode();
                 }
 
             }

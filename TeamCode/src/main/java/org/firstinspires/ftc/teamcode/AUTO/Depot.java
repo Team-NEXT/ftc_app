@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode.AUTO;
 
 import android.view.Display;
 
+import com.disnodeteam.dogecv.CameraViewDisplay;
+import com.disnodeteam.dogecv.DogeCV;
+import com.disnodeteam.dogecv.detectors.roverrukus.GoldAlignDetector;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsTouchSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -92,6 +95,8 @@ public class Depot extends LinearOpMode {
     private static IntegratingGyroscope gyro;
     private static ModernRoboticsI2cGyro mrgyro;
 
+    private GoldAlignDetector detector;
+
     int mineralPos;
 
     @Override
@@ -170,6 +175,25 @@ public class Depot extends LinearOpMode {
         yUp = 0.59;
         yDown = 0.39;
 
+        // Set up detector
+        detector = new GoldAlignDetector(); // Create detector
+        detector.init(hardwareMap.appContext, CameraViewDisplay.getInstance()); // Initialize it with the app context and camera
+        detector.useDefaults(); // Set detector to use default settings
+
+        // Optional tuning
+        detector.alignSize = 200; // How wide (in pixels) is the range in which the gold object will be aligned. (Represented by green bars in the preview)
+        detector.alignPosOffset = 0; // How far from center frame to offset this alignment zone.
+        detector.downscale = 0.4; // How much to downscale the input frames
+
+        detector.areaScoringMethod = DogeCV.AreaScoringMethod.MAX_AREA; // Can also be PERFECT_AREA
+        //detector.perfectAreaScorer.perfectArea = 10000; // if using PERFECT_AREA scoring
+        detector.maxAreaScorer.weight = 0.005; //
+
+        detector.ratioScorer.weight = 5; //
+        detector.ratioScorer.perfectRatio = 1.0; // Ratio adjustment
+
+        detector.enable(); // Start the detector!
+
         //INITIALIZATION
         dropperServo.setPosition(dLoad);
 
@@ -208,20 +232,50 @@ public class Depot extends LinearOpMode {
         telemetry.log().clear(); telemetry.log().add("Gyro Calibrated. Press Start.");
         telemetry.clear(); telemetry.update();
 
-        mineralPos = 3;
+//        mineralPos = 3;
 
         waitForStart();
 
         /**CODE AFTER STARTING*/
 
-//        LATCHING(1);
+        LATCHING(1);
 
-        Thread.sleep(3000);
+//        Thread.sleep(3000);
 
         yServo.setPosition(yDown);
         xServo.setPosition(xDown);
 
+        if (detector.isFound()) {
+            if (detector.getAligned()) {
+                telemetry.addLine("found: 2");
+                telemetry.addLine("found: 2");
+                telemetry.addLine("found: 2");
+                telemetry.addLine("found: 2");
+                telemetry.addLine("found: 2");
+                telemetry.update();
+                mineralPos = 2;
+            } else {
+                telemetry.addLine("found: 3");
+                telemetry.addLine("found: 3");
+                telemetry.addLine("found: 3");
+                telemetry.addLine("found: 3");
+                telemetry.addLine("found: 3");
+                telemetry.update();
+                mineralPos = 3;
+            }
+        } else {
+            telemetry.addLine("found: 1");
+            telemetry.addLine("found: 1");
+            telemetry.addLine("found: 1");
+            telemetry.addLine("found: 1");
+            telemetry.addLine("found: 1");
+            telemetry.update();
+            mineralPos = 1;
+        }
+
         BACKWARD(38, 0.25);
+
+        detector.disable();
 
         Thread.sleep(100);
 
@@ -305,7 +359,7 @@ public class Depot extends LinearOpMode {
 //            GYROAXISRIGHT(-69, 0.0056, 900);
             GYROAXISLEFT(96, 0.0043, 900);
             Thread.sleep(100);
-            RAMPFORWARD(830, 0.1, 0.1, 0.5, 0.05, 0.06);
+            RAMPFORWARD(830, 0.1, 0.1, 0.5, 0.01, 0.02);
             GYROAXISLEFT(17, 0.0087, 900);
 //            FORWARD(200, 0.3);
 //            collectorDC.setMode(STOP_AND_RESET_ENCODER);
