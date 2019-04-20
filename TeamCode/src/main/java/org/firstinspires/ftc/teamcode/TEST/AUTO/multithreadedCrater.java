@@ -80,9 +80,9 @@ public class multithreadedCrater extends LinearOpMode {
     private double yUp;
     private double yDown;
 
-    public double yCount, xCount;
+//    public double yCount, xCount;
 
-    public boolean yReset, xReset;
+//    public boolean yReset, xReset;
 
     boolean detect = false;
     boolean detectionComplete = false;
@@ -214,8 +214,8 @@ public class multithreadedCrater extends LinearOpMode {
         telemetry.log().add("Gyro Calibrating. Do Not Move!");
         mrgyro.calibrate();
 
-        xReset = true;
-        yReset = true;
+//        xReset = true;
+//        yReset = true;
 
         // Wait until the gyro calibration is complete
         timer.reset();
@@ -232,13 +232,13 @@ public class multithreadedCrater extends LinearOpMode {
 
         Thread ultThread = new UltThread();
         Thread imgThread = new ImgThread();
-        Thread encoderThread = new EncoderThread();
+//        Thread encoderThread = new EncoderThread();
 
         waitForStart();
 
         ultThread.start();
         imgThread.start();
-        encoderThread.start();
+//        encoderThread.start();
 
         /**CODE AFTER STARTING*/
 
@@ -249,42 +249,42 @@ public class multithreadedCrater extends LinearOpMode {
 
         ultThread.interrupt();
         imgThread.interrupt();
-        encoderThread.interrupt();
+//        encoderThread.interrupt();
 
 //        COLLECTORCONTRACT(0.8);
     }
 
-    private class EncoderThread extends Thread {
-        public EncoderThread() {
-            this.setName("EncoderThread");
-        }
-        @Override
-        public void run() {
-            while (!isInterrupted()) {
-
-                yCount = yAxisDC.getCurrentPosition();
-
-                xCount = latchingDC.getCurrentPosition();
-
-                if (yReset) {
-                    yAxisDC.setMode(STOP_AND_RESET_ENCODER);
-                    yAxisDC.setMode(RUN_USING_ENCODER);
-                    yReset = false;
-                }
-
-                if (xReset) {
-                    latchingDC.setMode(STOP_AND_RESET_ENCODER);
-                    latchingDC.setMode(RUN_USING_ENCODER);
-                    xReset = false;
-                }
-
-                telemetry.addData("x: ", latchingDC.getCurrentPosition());
-                telemetry.addData("y: ", yAxisDC.getCurrentPosition());
-                telemetry.update();
-
-            }
-        }
-    }
+//    private class EncoderThread extends Thread {
+//        public EncoderThread() {
+//            this.setName("EncoderThread");
+//        }
+//        @Override
+//        public void run() {
+//            while (!isInterrupted()) {
+//
+//                yCount = yAxisDC.getCurrentPosition();
+//
+//                xCount = latchingDC.getCurrentPosition();
+//
+//                if (yReset) {
+//                    yAxisDC.setMode(STOP_AND_RESET_ENCODER);
+//                    yAxisDC.setMode(RUN_USING_ENCODER);
+//                    yReset = false;
+//                }
+//
+//                if (xReset) {
+//                    latchingDC.setMode(STOP_AND_RESET_ENCODER);
+//                    latchingDC.setMode(RUN_USING_ENCODER);
+//                    xReset = false;
+//                }
+//
+//                telemetry.addData("x: ", latchingDC.getCurrentPosition());
+//                telemetry.addData("y: ", yAxisDC.getCurrentPosition());
+//                telemetry.update();
+//
+//            }
+//        }
+//    }
 
     private class ImgThread extends Thread {
         public ImgThread() {
@@ -318,7 +318,7 @@ public class multithreadedCrater extends LinearOpMode {
         @Override
         public void run() {
             while (!isInterrupted()) {
-                //        LATCHING(1);
+                        LATCHING(1);
 
                 yServo.setPosition(yDown);
                 xServo.setPosition(xDown);
