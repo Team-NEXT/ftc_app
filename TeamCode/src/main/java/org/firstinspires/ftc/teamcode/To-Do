@@ -1,0 +1,47 @@
+//**Changes for Detroit**//
+---------------------------
+
+1. **SOLVE WHILE LOOP ISSUES --> <THIS WAS DONE BY ELIMINATING WHILE LOOPS>
+
+2. **MULTITHREADING
+
+3. **GYRO SENSOR --> <GYRO SENSOR CODE IS WORKING USING HEADING, INT-Z, ANGLE>
+
+4. **95 point autonomous (or more)
+
+5. better implementation for encoders
+
+6. **fix sway in auto (gyro, encoders)
+
+7. **improve control mapping
+
+8. kontrolfreeks
+
+9. **TensorFlow
+
+10. telemetry games
+
+11. **improve auto turning (gyro, encoders)
+
+12. PUBLIC CLASSES
+
+13. ADD GYRO TURN TIMER!!!!!!!!!!!!!!
+
+--> for wavy movement in auto: run motors at specific power to achieve desired path and move till gyro returns desired heading value
+
+//**To-Do**//
+-------------
+
+1. **Autonomous basic routes
+
+2. **Autonomous additional routes
+
+3. **TeleOp basic code
+
+4. TeleOp experimental code
+
+
+//**Miscellaneous**//
+---------------------
+
+1. **MR gyro sensor needs to be attached to the robot
