@@ -208,7 +208,7 @@ public class Depot extends LinearOpMode {
         telemetry.log().clear(); telemetry.log().add("Gyro Calibrated. Press Start.");
         telemetry.clear(); telemetry.update();
 
-        mineralPos = 1               ;
+        mineralPos = 3;
 
         waitForStart();
 
@@ -503,7 +503,7 @@ public class Depot extends LinearOpMode {
         if (mineralPos == 3) {
             SWAYRIGHT(210);
 
-            GYROAXISRIGHT(-85, 0.005, 900);
+            GYROAXISRIGHT(-84, 0.0049, 900);
             collectorDC.setPower(0);
             collectorDC.setMode(STOP_AND_RESET_ENCODER);
             collectorDC.setMode(RUN_USING_ENCODER);
@@ -513,7 +513,7 @@ public class Depot extends LinearOpMode {
             collectorDC.setPower(0);
             while (collectorServo.getPosition() < cMarker) {
                 cPos = collectorServo.getPosition();
-                cPos += 0.03;
+                cPos += 0.028;
                 collectorServo.setPosition(cPos);
             }
             if (cPos > cMarker) {
@@ -530,7 +530,7 @@ public class Depot extends LinearOpMode {
             }
             collectorDC.setPower(0);
 
-            GYROAXISLEFT(37, 0.0078, 900);
+            GYROAXISLEFT(42, 0.0062, 900);
             while (collectorServo.getPosition() < cOpen) {
                 cPos = collectorServo.getPosition();
                 cPos += 0.05;
@@ -540,14 +540,64 @@ public class Depot extends LinearOpMode {
                 collectorServo.setPosition(cOpen);
             }
             SWEEPER(1);
+
             collectorDC.setPower(0);
-            collectorDC.setMode(STOP_AND_RESET_ENCODER);
-            collectorDC.setMode(RUN_USING_ENCODER);
-            while (collectorDC.getCurrentPosition() < 800) {
-                collectorDC.setPower(0.6);
+            FORWARD(250, 0.3);
+            Thread.sleep(700);
+            while (collectorServo.getPosition() > cMid) {
+                cPos = collectorServo.getPosition();
+                cPos -= 0.05;
+                collectorServo.setPosition(cMid);
+            }
+            if (cPos < cMid) {
+                collectorServo.setPosition(cMid);
+            }
+//            while (collectorDC.getCurrentPosition() > 350) {
+//                collectorDC.setPower(-1);
+//            }
+//            collectorDC.setPower(0);
+            while (!collectorLimit.isPressed()) {
+                collectorDC.setPower(-0.4);
             }
             collectorDC.setPower(0);
-            Thread.sleep(700);
+            while (collectorServo.getPosition() > cClose) {
+                cPos = collectorServo.getPosition();
+                cPos -= 0.05;
+                collectorServo.setPosition(cPos);
+            }
+            if (cPos < cClose) {
+                collectorServo.setPosition(cClose);
+            }
+            flapServo.setPosition(FO);
+            GYRORIGHTPIVOT(-24, 0.012, 900);
+            BACKWARD(30, 0.2);
+            SWEEPER(0);
+            DROP();
+            FORWARD(180, 0.3);
+            GYROAXISLEFT(100, 0.0042, 900);
+            Thread.sleep(200);
+            RAMPFORWARD(450, 0.1, 0.1, 0.5, 0.01, 0.02);
+            collectorDC.setMode(STOP_AND_RESET_ENCODER);
+            collectorDC.setMode(RUN_USING_ENCODER);
+            while (collectorDC.getCurrentPosition()<750) {
+                collectorDC.setPower(1);
+            }
+            collectorDC.setPower(0);
+            while (collectorServo.getPosition() < cOpen) {
+                cPos = collectorServo.getPosition();
+                cPos += 0.05;
+                collectorServo.setPosition(cPos);
+            }
+            if (cPos > cOpen) {
+                collectorServo.setPosition(cOpen);
+            }
+            flapServo.setPosition(FC);
+            SWEEPER(1);
+            while (collectorDC.getCurrentPosition()<1800) {
+                collectorDC.setPower(0.8);
+            }
+            collectorDC.setPower(0);
+            Thread.sleep(500);
             while (collectorServo.getPosition() > cMid) {
                 cPos = collectorServo.getPosition();
                 cPos -= 0.05;
@@ -573,10 +623,22 @@ public class Depot extends LinearOpMode {
                 collectorServo.setPosition(cClose);
             }
             flapServo.setPosition(FO);
-            GYROAXISRIGHT(-37, 0.008, 900);
+            Thread.sleep(1000);
             SWEEPER(0);
-            DROPlow();
-            Thread.sleep(100);
+            collectorDC.setMode(STOP_AND_RESET_ENCODER);
+            collectorDC.setMode(RUN_USING_ENCODER);
+            while (collectorDC.getCurrentPosition() < 750) {
+                collectorDC.setPower(1);
+            }
+            collectorDC.setPower(0);
+            while (collectorServo.getPosition() < cMid) {
+                cPos = collectorServo.getPosition();
+                cPos += 0.05;
+                collectorServo.setPosition(cPos);
+            }
+            if (cPos > cMid) {
+                collectorServo.setPosition(cMid);
+            }
         }
 ////
     }
@@ -685,6 +747,13 @@ public class Depot extends LinearOpMode {
 
         yAxisDC.setMode(STOP_AND_RESET_ENCODER);
         yAxisDC.setMode(RUN_USING_ENCODER);
+
+//        try {
+//            Thread.sleep(100);
+//        } catch (InterruptedException e) {
+//            telemetry.addLine("RF INTERRPUTED");
+//            telemetry.update();
+//        }
 
         while ((targetTicks - 100) > Math.abs(yAxisDC.getCurrentPosition())) {
 
@@ -2094,6 +2163,89 @@ public class Depot extends LinearOpMode {
                 motorFrontLeft.setPower(0);
                 motorBackLeft.setPower(0);
                 motorBackRight.setPower(-0.15);
+            } else {
+                motorFrontRight.setPower(0);
+                motorFrontLeft.setPower(0);
+                motorBackLeft.setPower(0);
+                motorBackRight.setPower(0);
+            }
+        }
+
+        motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
+
+    }
+
+    public void GYRORIGHTPIVOT (double targetHeading, double multiplicationFactor, double maxT) {
+
+        mrgyro.resetZAxisIntegrator();
+
+        double error, correction;
+
+//        inRange = false;
+
+        boolean loopBreak = false;
+
+        float gTime = 0;
+        float gTimeStart = System.currentTimeMillis();
+
+        runtime.reset();
+        while ((mrgyro.getIntegratedZValue() > targetHeading) && (!loopBreak)) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            correction = error * multiplicationFactor;
+
+            if (runtime.milliseconds() < maxT) {
+                if (error < 0) {
+                    //AXIS LEFT
+                    motorFrontRight.setPower(0);
+                    motorFrontLeft.setPower(-correction);
+                    motorBackLeft.setPower(-correction);
+                    motorBackRight.setPower(0);
+                } else if (error > 0) {
+                    //AXIS RIGHT
+                    motorFrontRight.setPower(0);
+                    motorFrontLeft.setPower(correction);
+                    motorBackLeft.setPower(correction);
+                    motorBackRight.setPower(0);
+                } else {
+                    motorFrontRight.setPower(0);
+                    motorFrontLeft.setPower(0);
+                    motorBackLeft.setPower(0);
+                    motorBackRight.setPower(0);
+                }
+            } else {
+                loopBreak = true;
+            }
+
+            telemetry.addData("FR", motorFrontRight.getPower());
+            telemetry.addData("BR", motorBackRight.getPower());
+            telemetry.addData("FL", motorFrontLeft.getPower());
+            telemetry.addData("BL", motorBackLeft.getPower());
+            telemetry.addData("z: ", mrgyro.getIntegratedZValue());
+            telemetry.update();
+        }
+
+        while (targetHeading != mrgyro.getIntegratedZValue()) {
+            error = targetHeading - mrgyro.getIntegratedZValue();
+            if (error < 0) {
+                //BP LEFT
+                motorFrontRight.setPower(0);
+                motorFrontLeft.setPower(0.15);
+                motorBackLeft.setPower(0.15);
+                motorBackRight.setPower(0);
+            } else if (error > 0) {
+                //BP RIGHT
+                motorFrontRight.setPower(0);
+                motorFrontLeft.setPower(-0.15);
+                motorBackLeft.setPower(-0.15);
+                motorBackRight.setPower(0);
             } else {
                 motorFrontRight.setPower(0);
                 motorFrontLeft.setPower(0);

@@ -198,7 +198,7 @@ public class altControls extends LinearOpMode {
 
             while (!isInterrupted()) {
 
-//                gamepad1.setJoystickDeadzone(0.3f); //THIS WAS NEVER ON
+                gamepad1.setJoystickDeadzone(0.15f); //TEST
 
                 /**DRIVING*/
                 if (!gamepad1.left_stick_button && !gamepad1.dpad_up && !gamepad1.dpad_left && !gamepad1.dpad_down && !gamepad1.dpad_right) {
