@@ -13,7 +13,7 @@ import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 
-@TeleOp(name = "mttest", group = "final")
+@TeleOp(name = "mttest", group = "mt-test")
 
 public class MultithreadingTest extends LinearOpMode {
 

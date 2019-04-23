@@ -4,13 +4,13 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp(name = "SERVO TEST : flap", group = "test")
+@TeleOp(name = "SERVO TEST : flap", group = "servo-test")
 
 public class flapServoTest extends LinearOpMode{
 
     private static Servo flapServo;
 
-    private static double servoPos = 0.5, FO = 0.28, FC = 0.4;
+    private static double servoPos = 0.5, FO = 0.55, FC = 0.18;
 
     @Override
     public void runOpMode() throws InterruptedException {

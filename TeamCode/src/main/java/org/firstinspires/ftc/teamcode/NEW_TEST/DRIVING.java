@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.NEW_TEST;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -11,6 +12,7 @@ import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENC
  * Created by shiva on 25/5/18.
  */
 
+@Disabled
 @TeleOp(name = "Driving test", group = "prototype")
 
 public class DRIVING extends LinearOpMode {

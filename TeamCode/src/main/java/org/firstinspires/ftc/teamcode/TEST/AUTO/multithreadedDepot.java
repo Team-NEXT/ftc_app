@@ -25,7 +25,7 @@ import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 
-@Autonomous(name = "MT - Depot", group = "final")
+@Autonomous(name = "MT - Depot", group = "mt-test")
 
 public class multithreadedDepot extends LinearOpMode {
 

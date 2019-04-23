@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import javax.xml.xpath.XPath;
 
-@TeleOp(name = "SERVO TEST : encoders", group = "test")
+@TeleOp(name = "SERVO TEST : encoders", group = "servo-test")
 
 public class encoderServoTest extends LinearOpMode{
 

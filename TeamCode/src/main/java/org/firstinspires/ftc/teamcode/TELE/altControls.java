@@ -13,7 +13,7 @@ import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 
-@TeleOp(name = "alt controls", group = "final")
+@TeleOp(name = "FINAL TELE-OP", group = "final")
 
 /**
  * G1: drivetrain and collector mech
@@ -40,6 +40,8 @@ public class altControls extends LinearOpMode {
     private DcMotor motorBackLeft;
     private DcMotor motorFrontRight;
     private DcMotor motorBackRight;
+
+    private double lsx = 0, lsy = 0;
 
     //LATCHING
     private DcMotor latchingDC;
@@ -176,6 +178,29 @@ public class altControls extends LinearOpMode {
         while (opModeIsActive()) {
 
             telemetry.addData("run time: ", this.getRuntime());
+            telemetry.addLine("***");
+            telemetry.addLine("DRIVE:");
+            telemetry.addData("FrontLeft: ", motorFrontLeft.getPower());
+            telemetry.addData("BackLeft: ", motorBackLeft.getPower());
+            telemetry.addData("FrontRight: ", motorFrontRight.getPower());
+            telemetry.addData("BackRight: ", motorBackRight.getPower());
+            telemetry.addLine("***");
+            telemetry.addLine("COLLECTOR:");
+            telemetry.addData("collectorDC: ", collectorDC.getCurrentPosition());
+            telemetry.addData("cServo: ", collectorServo.getPosition());
+            telemetry.addData("collectorLimit", collectorLimit.isPressed());
+            telemetry.addData("flapServo:", flapServo.getPosition());
+            telemetry.addData("sweeperServo:", sweeperServo.getPower());
+            telemetry.addLine("***");
+            telemetry.addLine("DROPPER:");
+            telemetry.addData("dropperDC: ", dropperDC.getCurrentPosition());
+            telemetry.addData("dropperServo: ", dropperServo.getPosition());
+            telemetry.addData("dropperLimit: ", dropperLimit.isPressed());
+            telemetry.addLine("***");
+            telemetry.addLine("LATCHING:");
+            telemetry.addData("LatchUpperLimit: ", latchUpperLimit.isPressed());
+            telemetry.addData("LatchLowerLimit: ", latchLowerLimit.isPressed());
+
             telemetry.update();
 
         }
@@ -208,33 +233,43 @@ public class altControls extends LinearOpMode {
                     rightStickVal = gamepad1.right_stick_x;
                 }
 
+                if (Math.abs(gamepad1.left_stick_x) <= 0.15) {
+                    lsx = 0;
+                } else {
+                    lsx = gamepad1.left_stick_x;
+                }
+
+                if (Math.abs(gamepad1.left_stick_y) <= 0.15) {
+                    lsy = 0;
+                } else {
+                    lsy = gamepad1.left_stick_y;
+                }
+
                 /**DRIVING*/
                 if (!gamepad1.left_stick_button && !gamepad1.dpad_up && !gamepad1.dpad_left && !gamepad1.dpad_down && !gamepad1.dpad_right) {
 
-                    telemetry.addLine("full speed");
+                    double hypot = Math.hypot(lsx, lsy);
+//                    telemetry.addData("r = ", hypot);
 
-                    double hypot = Math.hypot(gamepad1.left_stick_x, gamepad1.left_stick_y);
-                    telemetry.addData("r = ", hypot);
-
-                    double robotAngle = Math.atan2(-gamepad1.left_stick_y, gamepad1.left_stick_x) - Math.PI / 4;
-                    telemetry.addData("robotAngle = ", robotAngle);
+                    double robotAngle = Math.atan2(-lsy, lsx) - Math.PI / 4;
+//                    telemetry.addData("robotAngle = ", robotAngle);
 
                     double rightStickModifier = -rightStickVal;
-                    telemetry.addData("rightX = ", rightStickModifier);
+//                    telemetry.addData("rightX = ", rightStickModifier);
 
                     final double v1 = hypot * Math.cos(robotAngle) + rightStickModifier;
-                    telemetry.addData("front left power = ", motorFrontLeft.getPower());
+//                    telemetry.addData("front left power = ", motorFrontLeft.getPower());
 
                     final double v2 = hypot * Math.sin(robotAngle) - rightStickModifier;
-                    telemetry.addData("front right power = ", motorFrontRight.getPower());
+//                    telemetry.addData("front right power = ", motorFrontRight.getPower());
 
                     final double v3 = hypot * Math.sin(robotAngle) + rightStickModifier;
-                    telemetry.addData("back left power = ", motorBackLeft.getPower());
+//                    telemetry.addData("back left power = ", motorBackLeft.getPower());
 
                     final double v4 = hypot * Math.cos(robotAngle) - rightStickModifier;
-                    telemetry.addData("back right power = ", motorBackRight.getPower());
+//                    telemetry.addData("back right power = ", motorBackRight.getPower());
 
-                    telemetry.update();
+//                    telemetry.update();
 
                     motorFrontRight.setPower(v2);
                     motorFrontLeft.setPower(v1);
@@ -257,8 +292,8 @@ public class altControls extends LinearOpMode {
 //                    }
 
                     if (gamepad1.dpad_up && !gamepad1.dpad_down && !gamepad1.dpad_left && !gamepad1.dpad_right) {
-                        telemetry.addLine("inching");
-                        telemetry.update();
+//                        telemetry.addLine("inching");
+//                        telemetry.update();
                         motorFrontRight.setPower(0.2);
                         motorFrontLeft.setPower(0.2);
                         motorBackLeft.setPower(0.2);
@@ -266,8 +301,8 @@ public class altControls extends LinearOpMode {
                     }
 
                     if (!gamepad1.dpad_up && gamepad1.dpad_down && !gamepad1.dpad_left && !gamepad1.dpad_right) {
-                        telemetry.addLine("inching");
-                        telemetry.update();
+//                        telemetry.addLine("inching");
+//                        telemetry.update();
                         motorFrontRight.setPower(-0.2);
                         motorFrontLeft.setPower(-0.2);
                         motorBackLeft.setPower(-0.2);
@@ -275,8 +310,8 @@ public class altControls extends LinearOpMode {
                     }
 
                     if (!gamepad1.dpad_up && !gamepad1.dpad_down && gamepad1.dpad_left && !gamepad1.dpad_right) {
-                        telemetry.addLine("inching");
-                        telemetry.update();
+//                        telemetry.addLine("inching");
+//                        telemetry.update();
                         motorFrontRight.setPower(-0.2);
                         motorFrontLeft.setPower(0.2);
                         motorBackLeft.setPower(0.2);
@@ -284,8 +319,8 @@ public class altControls extends LinearOpMode {
                     }
 
                     if (!gamepad1.dpad_up && !gamepad1.dpad_down && !gamepad1.dpad_left && gamepad1.dpad_right) {
-                        telemetry.addLine("inching");
-                        telemetry.update();
+//                        telemetry.addLine("inching");
+//                        telemetry.update();
                         motorFrontRight.setPower(0.2);
                         motorFrontLeft.setPower(-0.2);
                         motorBackLeft.setPower(-0.2);
@@ -296,30 +331,30 @@ public class altControls extends LinearOpMode {
 
                 /**MEDIUM*/
                 if (gamepad1.left_stick_button && !gamepad1.dpad_up && !gamepad1.dpad_left && !gamepad1.dpad_down && !gamepad1.dpad_right) {
-                    telemetry.addLine("half speed");
+//                    telemetry.addLine("half speed");
 
-                    double hypot = Math.hypot((gamepad1.left_stick_x*0.5), (gamepad1.left_stick_y*0.5));
-                    telemetry.addData("r = ", hypot);
+                    double hypot = Math.hypot((lsx*0.5), (lsy*0.5));
+//                    telemetry.addData("r = ", hypot);
 
-                    double robotAngle = Math.atan2(-(gamepad1.left_stick_y*0.5), (gamepad1.left_stick_x*0.5)) - Math.PI / 4;
-                    telemetry.addData("robotAngle = ", robotAngle);
+                    double robotAngle = Math.atan2(-(lsy*0.5), (lsx*0.5)) - Math.PI / 4;
+//                    telemetry.addData("robotAngle = ", robotAngle);
 
                     double rightStickModifier = -(rightStickVal*0.5);
-                    telemetry.addData("rightX = ", rightStickModifier);
+//                    telemetry.addData("rightX = ", rightStickModifier);
 
                     final double v1 = hypot * Math.cos(robotAngle) + rightStickModifier;
-                    telemetry.addData("front left power = ", motorFrontLeft.getPower());
+//                    telemetry.addData("front left power = ", motorFrontLeft.getPower());
 
                     final double v2 = hypot * Math.sin(robotAngle) - rightStickModifier;
-                    telemetry.addData("front right power = ", motorFrontRight.getPower());
+//                    telemetry.addData("front right power = ", motorFrontRight.getPower());
 
                     final double v3 = hypot * Math.sin(robotAngle) + rightStickModifier;
-                    telemetry.addData("back left power = ", motorBackLeft.getPower());
+//                    telemetry.addData("back left power = ", motorBackLeft.getPower());
 
                     final double v4 = hypot * Math.cos(robotAngle) - rightStickModifier;
-                    telemetry.addData("back right power = ", motorBackRight.getPower());
+//                    telemetry.addData("back right power = ", motorBackRight.getPower());
 
-                    telemetry.update();
+//                    telemetry.update();
 
                     motorFrontRight.setPower(v2);
                     motorFrontLeft.setPower(v1);
@@ -530,7 +565,7 @@ public class altControls extends LinearOpMode {
 //                startTime = System.currentTimeMillis();
                     while (dropperServo.getPosition() > dUnload) {
                         dPos = dropperServo.getPosition();
-                        dPos -= 0.038;
+                        dPos -= 0.023;
                         dropperServo.setPosition(dPos);
                     }
                     if (dPos < dUnload) {
@@ -596,7 +631,7 @@ public class altControls extends LinearOpMode {
                     dropperDC.setPower(0);
                     while (dropperServo.getPosition() > dUnload && !dExit) {
                         dPos = dropperServo.getPosition();
-                        dPos -= 0.025;
+                        dPos -= 0.023;
                         dropperServo.setPosition(dPos);
                     }
                     if (dPos < dUnload) {
@@ -635,8 +670,8 @@ public class altControls extends LinearOpMode {
                     dropperDC.setPower(0);
                 }
 
-                telemetry.addData("ddc: ", dropperDC.getCurrentPosition());
-                telemetry.update();
+//                telemetry.addData("ddc: ", dropperDC.getCurrentPosition());
+//                telemetry.update();
 
             }
 

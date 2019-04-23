@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.TELE;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+@Disabled
 @TeleOp(name="DRIVING (ITERATIVE)", group="experimental")
 
 public class DRIVING_ITERATIVE extends OpMode {

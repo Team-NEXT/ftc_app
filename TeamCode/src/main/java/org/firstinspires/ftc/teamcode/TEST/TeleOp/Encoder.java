@@ -7,14 +7,14 @@ import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_USING_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotorSimple.Direction.REVERSE;
 
-@TeleOp(name = "EncoderTest", group = "test")
+@TeleOp(name = "EncoderTest", group = "val-test")
 
 public class Encoder extends LinearOpMode{
 
     //Gamepad 1
 
     private DcMotor yAxisDC;
-    private DcMotor motorFrontRight;
+    private DcMotor latchingDC;
 //    private DcMotor motorBackRight;
 
     private static int x_pos;
@@ -24,28 +24,28 @@ public class Encoder extends LinearOpMode{
     public void runOpMode() throws InterruptedException {
 
         yAxisDC = hardwareMap.dcMotor.get("yAxisEncoder");
-        motorFrontRight = hardwareMap.dcMotor.get("frontRight");
+        latchingDC = hardwareMap.dcMotor.get("latchingDC");
 
         yAxisDC.setMode(STOP_AND_RESET_ENCODER);
-        motorFrontRight.setMode(STOP_AND_RESET_ENCODER);
+        latchingDC.setMode(STOP_AND_RESET_ENCODER);
 
         yAxisDC.setMode(RUN_USING_ENCODER);
-        motorFrontRight.setMode(RUN_USING_ENCODER);
+        latchingDC.setMode(RUN_USING_ENCODER);
 
-//        x_pos = 0;
+        x_pos = 0;
         y_pos = 0;
 
         waitForStart();
 
         while (opModeIsActive()){
 
-//            x_pos = motorBackRight.getCurrentPosition();
+            x_pos = latchingDC.getCurrentPosition();
             y_pos = yAxisDC.getCurrentPosition();
 
-//            if (gamepad1.x) {
-//                motorBackRight.setMode(STOP_AND_RESET_ENCODER);
-//                motorBackRight.setMode(RUN_USING_ENCODER);
-//            }
+            if (gamepad1.x) {
+                latchingDC.setMode(STOP_AND_RESET_ENCODER);
+                latchingDC.setMode(RUN_USING_ENCODER);
+            }
 
             if (gamepad1.y) {
                 yAxisDC.setMode(STOP_AND_RESET_ENCODER);
@@ -55,7 +55,7 @@ public class Encoder extends LinearOpMode{
 
 
 //            telemetry.addData("x = ", x_pos);
-            telemetry.addData("FR = ", motorFrontRight.getCurrentPosition());
+            telemetry.addData("x = ", latchingDC.getCurrentPosition());
             telemetry.addData("y = ", y_pos);
             telemetry.update();
 

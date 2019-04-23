@@ -4,13 +4,13 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp(name = "SERVO TEST : collector", group = "test")
+@TeleOp(name = "SERVO TEST : collector", group = "servo-test")
 
 public class collectServoTest extends LinearOpMode{
 
     private static Servo collectServo;
 
-    private static double servoPos = 0.5, cUP = 0.28, cDOWN = 0.4, cMID = 0.6;
+    private static double servoPos = 0.5, cUP = 0.03, cDOWN = 0.9, cMID = 0.6, cMarker = 0.7;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -37,6 +37,22 @@ public class collectServoTest extends LinearOpMode{
 //                    xPos -= 0.01;
 //                }
                 servoPos -= 0.01;
+            }
+
+            if (gamepad1.left_bumper) {
+                servoPos = cUP;
+            }
+
+            if (gamepad1.right_bumper) {
+                servoPos = cDOWN;
+            }
+
+            if (gamepad1.b) {
+                servoPos = cMID;
+            }
+
+            if (gamepad1.y) {
+                servoPos = cMarker;
             }
 
             collectServo.setPosition(servoPos);

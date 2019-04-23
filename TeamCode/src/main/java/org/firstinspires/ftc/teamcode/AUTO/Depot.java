@@ -202,7 +202,7 @@ public class Depot extends LinearOpMode {
         flapServo.setPosition(FC);
 
         collectorDC.setPower(0);
-        while(!collectorLimit.isPressed()) {
+        while(!collectorLimit.isPressed() && !isStopRequested()) {
             collectorDC.setPower(-0.7);
             telemetry.addLine("collector initializing");
             telemetry.update();
@@ -223,7 +223,7 @@ public class Depot extends LinearOpMode {
 
         // Wait until the gyro calibration is complete
         timer.reset();
-        while (!isStopRequested() && mrgyro.isCalibrating())  {
+        while (!isStopRequested() && mrgyro.isCalibrating() && !isStopRequested())  {
             telemetry.addData("calibrating", "%s", Math.round(timer.seconds())%2==0 ? "|.." : "..|");
             telemetry.update();
             sleep(50);
@@ -289,11 +289,11 @@ public class Depot extends LinearOpMode {
             collectorDC.setPower(0);
             collectorDC.setMode(STOP_AND_RESET_ENCODER);
             collectorDC.setMode(RUN_USING_ENCODER);
-            while (collectorDC.getCurrentPosition() < 2000) {
+            while (collectorDC.getCurrentPosition() < 2000 && !isStopRequested()) {
                 collectorDC.setPower(1);
             }
             collectorDC.setPower(0);
-            while (collectorServo.getPosition() < cMarker) {
+            while (collectorServo.getPosition() < cMarker && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos += 0.03;
                 collectorServo.setPosition(cPos);
@@ -304,16 +304,16 @@ public class Depot extends LinearOpMode {
             sweeperServo.setPower(-1);
             Thread.sleep(700);
             sweeperServo.setPower(0);
-            while (collectorDC.getCurrentPosition() > 500) {
+            while (collectorDC.getCurrentPosition() > 500 && !isStopRequested()) {
                 collectorDC.setPower(-1);
             }
-            while (!collectorLimit.isPressed()) {
+            while (!collectorLimit.isPressed() && !isStopRequested()) {
                 collectorDC.setPower(-0.4);
             }
             collectorDC.setPower(0);
 
             GYROAXISRIGHT(-33, 0.0062, 900);
-            while (collectorServo.getPosition() < cOpen) {
+            while (collectorServo.getPosition() < cOpen && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos += 0.05;
                 collectorServo.setPosition(cPos);
@@ -326,7 +326,7 @@ public class Depot extends LinearOpMode {
             collectorDC.setPower(0);
             FORWARD(250, 0.3);
             Thread.sleep(700);
-            while (collectorServo.getPosition() > cMid) {
+            while (collectorServo.getPosition() > cMid && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos -= 0.05;
                 collectorServo.setPosition(cMid);
@@ -338,11 +338,11 @@ public class Depot extends LinearOpMode {
 //                collectorDC.setPower(-1);
 //            }
 //            collectorDC.setPower(0);
-            while (!collectorLimit.isPressed()) {
+            while (!collectorLimit.isPressed() && !isStopRequested()) {
                 collectorDC.setPower(-0.4);
             }
             collectorDC.setPower(0);
-            while (collectorServo.getPosition() > cClose) {
+            while (collectorServo.getPosition() > cClose && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos -= 0.05;
                 collectorServo.setPosition(cPos);
@@ -433,11 +433,11 @@ public class Depot extends LinearOpMode {
             collectorDC.setPower(0);
             collectorDC.setMode(STOP_AND_RESET_ENCODER);
             collectorDC.setMode(RUN_USING_ENCODER);
-            while (collectorDC.getCurrentPosition() < 2000) {
+            while (collectorDC.getCurrentPosition() < 2000 && !isStopRequested()) {
                 collectorDC.setPower(1);
             }
             collectorDC.setPower(0);
-            while (collectorServo.getPosition() < cMarker) {
+            while (collectorServo.getPosition() < cMarker && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos += 0.03;
                 collectorServo.setPosition(cPos);
@@ -448,16 +448,16 @@ public class Depot extends LinearOpMode {
             sweeperServo.setPower(-1);
             Thread.sleep(700);
             sweeperServo.setPower(0);
-            while (collectorDC.getCurrentPosition() > 500) {
+            while (collectorDC.getCurrentPosition() > 500 && !isStopRequested()) {
                 collectorDC.setPower(-1);
             }
-            while (!collectorLimit.isPressed()) {
+            while (!collectorLimit.isPressed() && !isStopRequested()) {
                 collectorDC.setPower(-0.4);
             }
             collectorDC.setPower(0);
 
             BACKWARD(50, 0.2);
-            while (collectorServo.getPosition() < cOpen) {
+            while (collectorServo.getPosition() < cOpen && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos += 0.05;
                 collectorServo.setPosition(cPos);
@@ -468,7 +468,7 @@ public class Depot extends LinearOpMode {
             SWEEPER(1);
             FORWARD(270, 0.27);
             Thread.sleep(700);
-            while (collectorServo.getPosition() > cClose) {
+            while (collectorServo.getPosition() > cClose && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos -= 0.03;
                 collectorServo.setPosition(cPos);
@@ -492,11 +492,11 @@ public class Depot extends LinearOpMode {
             FORWARD(200, 0.3);
             collectorDC.setMode(STOP_AND_RESET_ENCODER);
             collectorDC.setMode(RUN_USING_ENCODER);
-            while (collectorDC.getCurrentPosition()<350) {
+            while (collectorDC.getCurrentPosition()<350 && !isStopRequested()) {
                 collectorDC.setPower(1);
             }
             collectorDC.setPower(0);
-            while (collectorServo.getPosition() < cOpen) {
+            while (collectorServo.getPosition() < cOpen && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos += 0.05;
                 collectorServo.setPosition(cPos);
@@ -506,12 +506,12 @@ public class Depot extends LinearOpMode {
             }
             flapServo.setPosition(FC);
             SWEEPER(1);
-            while (collectorDC.getCurrentPosition()<1200) {
+            while (collectorDC.getCurrentPosition()<1200 && !isStopRequested()) {
                 collectorDC.setPower(1);
             }
             collectorDC.setPower(0);
             Thread.sleep(500);
-            while (collectorServo.getPosition() > cMid) {
+            while (collectorServo.getPosition() > cMid && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos -= 0.05;
                 collectorServo.setPosition(cMid);
@@ -519,15 +519,15 @@ public class Depot extends LinearOpMode {
             if (cPos < cMid) {
                 collectorServo.setPosition(cMid);
             }
-            while (collectorDC.getCurrentPosition() > 350) {
+            while (collectorDC.getCurrentPosition() > 350 && !isStopRequested()) {
                 collectorDC.setPower(-1);
             }
             collectorDC.setPower(0);
-            while (!collectorLimit.isPressed()) {
+            while (!collectorLimit.isPressed() && !isStopRequested()) {
                 collectorDC.setPower(-0.4);
             }
             collectorDC.setPower(0);
-            while (collectorServo.getPosition() > cClose) {
+            while (collectorServo.getPosition() > cClose && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos -= 0.05;
                 collectorServo.setPosition(cPos);
@@ -540,11 +540,11 @@ public class Depot extends LinearOpMode {
             SWEEPER(0);
             collectorDC.setMode(STOP_AND_RESET_ENCODER);
             collectorDC.setMode(RUN_USING_ENCODER);
-            while (collectorDC.getCurrentPosition() < 550) {
+            while (collectorDC.getCurrentPosition() < 550 && !isStopRequested()) {
                 collectorDC.setPower(1);
             }
             collectorDC.setPower(0);
-            while (collectorServo.getPosition() < cMid) {
+            while (collectorServo.getPosition() < cMid && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos += 0.05;
                 collectorServo.setPosition(cPos);
@@ -561,11 +561,11 @@ public class Depot extends LinearOpMode {
             collectorDC.setPower(0);
             collectorDC.setMode(STOP_AND_RESET_ENCODER);
             collectorDC.setMode(RUN_USING_ENCODER);
-            while (collectorDC.getCurrentPosition() < 2000) {
+            while (collectorDC.getCurrentPosition() < 2000 && !isStopRequested()) {
                 collectorDC.setPower(1);
             }
             collectorDC.setPower(0);
-            while (collectorServo.getPosition() < cMarker) {
+            while (collectorServo.getPosition() < cMarker && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos += 0.028;
                 collectorServo.setPosition(cPos);
@@ -576,16 +576,16 @@ public class Depot extends LinearOpMode {
             sweeperServo.setPower(-1);
             Thread.sleep(700);
             sweeperServo.setPower(0);
-            while (collectorDC.getCurrentPosition() > 500) {
+            while (collectorDC.getCurrentPosition() > 500 && !isStopRequested()) {
                 collectorDC.setPower(-1);
             }
-            while (!collectorLimit.isPressed()) {
+            while (!collectorLimit.isPressed() && !isStopRequested()) {
                 collectorDC.setPower(-0.4);
             }
             collectorDC.setPower(0);
 
             GYROAXISLEFT(42, 0.0062, 900);
-            while (collectorServo.getPosition() < cOpen) {
+            while (collectorServo.getPosition() < cOpen && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos += 0.05;
                 collectorServo.setPosition(cPos);
@@ -598,7 +598,7 @@ public class Depot extends LinearOpMode {
             collectorDC.setPower(0);
             FORWARD(250, 0.3);
             Thread.sleep(700);
-            while (collectorServo.getPosition() > cMid) {
+            while (collectorServo.getPosition() > cMid && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos -= 0.05;
                 collectorServo.setPosition(cMid);
@@ -610,11 +610,11 @@ public class Depot extends LinearOpMode {
 //                collectorDC.setPower(-1);
 //            }
 //            collectorDC.setPower(0);
-            while (!collectorLimit.isPressed()) {
+            while (!collectorLimit.isPressed() && !isStopRequested()) {
                 collectorDC.setPower(-0.4);
             }
             collectorDC.setPower(0);
-            while (collectorServo.getPosition() > cClose) {
+            while (collectorServo.getPosition() > cClose && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos -= 0.05;
                 collectorServo.setPosition(cPos);
@@ -633,11 +633,11 @@ public class Depot extends LinearOpMode {
             RAMPFORWARD(450, 0.1, 0.1, 0.5, 0.01, 0.02);
             collectorDC.setMode(STOP_AND_RESET_ENCODER);
             collectorDC.setMode(RUN_USING_ENCODER);
-            while (collectorDC.getCurrentPosition()<750) {
+            while (collectorDC.getCurrentPosition()<750 && !isStopRequested()) {
                 collectorDC.setPower(1);
             }
             collectorDC.setPower(0);
-            while (collectorServo.getPosition() < cOpen) {
+            while (collectorServo.getPosition() < cOpen && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos += 0.05;
                 collectorServo.setPosition(cPos);
@@ -647,12 +647,12 @@ public class Depot extends LinearOpMode {
             }
             flapServo.setPosition(FC);
             SWEEPER(1);
-            while (collectorDC.getCurrentPosition()<1800) {
+            while (collectorDC.getCurrentPosition()<1800 && !isStopRequested()) {
                 collectorDC.setPower(0.8);
             }
             collectorDC.setPower(0);
             Thread.sleep(500);
-            while (collectorServo.getPosition() > cMid) {
+            while (collectorServo.getPosition() > cMid && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos -= 0.05;
                 collectorServo.setPosition(cMid);
@@ -660,15 +660,15 @@ public class Depot extends LinearOpMode {
             if (cPos < cMid) {
                 collectorServo.setPosition(cMid);
             }
-            while (collectorDC.getCurrentPosition() > 350) {
+            while (collectorDC.getCurrentPosition() > 350 && !isStopRequested()) {
                 collectorDC.setPower(-1);
             }
             collectorDC.setPower(0);
-            while (!collectorLimit.isPressed()) {
+            while (!collectorLimit.isPressed() && !isStopRequested()) {
                 collectorDC.setPower(-0.4);
             }
             collectorDC.setPower(0);
-            while (collectorServo.getPosition() > cClose) {
+            while (collectorServo.getPosition() > cClose && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos -= 0.05;
                 collectorServo.setPosition(cPos);
@@ -681,11 +681,11 @@ public class Depot extends LinearOpMode {
             SWEEPER(0);
             collectorDC.setMode(STOP_AND_RESET_ENCODER);
             collectorDC.setMode(RUN_USING_ENCODER);
-            while (collectorDC.getCurrentPosition() < 750) {
+            while (collectorDC.getCurrentPosition() < 750 && !isStopRequested()) {
                 collectorDC.setPower(1);
             }
             collectorDC.setPower(0);
-            while (collectorServo.getPosition() < cMid) {
+            while (collectorServo.getPosition() < cMid && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos += 0.05;
                 collectorServo.setPosition(cPos);
@@ -705,7 +705,7 @@ public class Depot extends LinearOpMode {
         yAxisDC.setMode(STOP_AND_RESET_ENCODER);
         yAxisDC.setMode(RUN_USING_ENCODER);
 
-        while ((targetTicks - 100) > Math.abs(yAxisDC.getCurrentPosition())) {
+        while ((targetTicks - 100) > Math.abs(yAxisDC.getCurrentPosition()) && !isStopRequested()) {
             motorFrontRight.setPower(power);
             motorFrontLeft.setPower(power);
             motorBackLeft.setPower(power);
@@ -734,7 +734,7 @@ public class Depot extends LinearOpMode {
         yAxisDC.setMode(STOP_AND_RESET_ENCODER);
         yAxisDC.setMode(RUN_USING_ENCODER);
 
-        while ((targetTicks - 100) >= Math.abs(yAxisDC.getCurrentPosition())) {
+        while ((targetTicks - 100) >= Math.abs(yAxisDC.getCurrentPosition()) && !isStopRequested()) {
             motorFrontRight.setPower(power);
             motorFrontLeft.setPower(power);
             motorBackLeft.setPower(power);
@@ -761,7 +761,7 @@ public class Depot extends LinearOpMode {
             telemetry.update();
             yAxisDC.setMode(STOP_AND_RESET_ENCODER);
             yAxisDC.setMode(RUN_USING_ENCODER);
-            while (Math.abs(yAxisDC.getCurrentPosition()) < correctionTicks-100) {
+            while (Math.abs(yAxisDC.getCurrentPosition()) < correctionTicks-100 && !isStopRequested()) {
                 motorFrontRight.setPower(-0.15);
                 motorFrontLeft.setPower(-0.15);
                 motorBackLeft.setPower(-0.15);
@@ -772,7 +772,7 @@ public class Depot extends LinearOpMode {
             telemetry.update();
             yAxisDC.setMode(STOP_AND_RESET_ENCODER);
             yAxisDC.setMode(RUN_USING_ENCODER);
-            while (Math.abs(yAxisDC.getCurrentPosition()) < correctionTicks-100) {
+            while (Math.abs(yAxisDC.getCurrentPosition()) < correctionTicks-100 && !isStopRequested()) {
                 motorFrontRight.setPower(0.15);
                 motorFrontLeft.setPower(0.15);
                 motorBackLeft.setPower(0.15);
@@ -809,7 +809,7 @@ public class Depot extends LinearOpMode {
 //            telemetry.update();
 //        }
 
-        while ((targetTicks - 100) > Math.abs(yAxisDC.getCurrentPosition())) {
+        while ((targetTicks - 100) > Math.abs(yAxisDC.getCurrentPosition()) && !isStopRequested()) {
 
             if (Math.abs(yAxisDC.getCurrentPosition()) <= (targetTicks/2)) {
                 telemetry.addData("RUP", "");
@@ -860,7 +860,7 @@ public class Depot extends LinearOpMode {
         yAxisDC.setMode(STOP_AND_RESET_ENCODER);
         yAxisDC.setMode(RUN_USING_ENCODER);
 
-        while ((targetTicks - 100) > Math.abs(yAxisDC.getCurrentPosition())) {
+        while ((targetTicks - 100) > Math.abs(yAxisDC.getCurrentPosition()) && !isStopRequested()) {
 
             if (Math.abs(yAxisDC.getCurrentPosition()) <= (targetTicks/2)) {
                 telemetry.addData("RUP", "");
@@ -982,7 +982,7 @@ public class Depot extends LinearOpMode {
         yAxisDC.setMode(STOP_AND_RESET_ENCODER);
         yAxisDC.setMode(RUN_USING_ENCODER);
 
-        while ((targetTicks-100) > Math.abs(yAxisDC.getCurrentPosition())) {
+        while ((targetTicks-100) > Math.abs(yAxisDC.getCurrentPosition()) && !isStopRequested()) {
             motorFrontRight.setPower(-power);
             motorBackRight.setPower(-power);
             motorFrontLeft.setPower(-power);
@@ -1010,7 +1010,7 @@ public class Depot extends LinearOpMode {
         yAxisDC.setMode(STOP_AND_RESET_ENCODER);
         yAxisDC.setMode(RUN_USING_ENCODER);
 
-        while ((targetTicks-100) > Math.abs(yAxisDC.getCurrentPosition())) {
+        while ((targetTicks-100) > Math.abs(yAxisDC.getCurrentPosition()) && !isStopRequested()) {
             motorFrontRight.setPower(-power);
             motorBackRight.setPower(-power);
             motorFrontLeft.setPower(-power);
@@ -1033,7 +1033,7 @@ public class Depot extends LinearOpMode {
         latchingDC.setMode(STOP_AND_RESET_ENCODER);
         latchingDC.setMode(RUN_USING_ENCODER);
 
-        while ((targetTicks-100) > Math.abs(latchingDC.getCurrentPosition())) {
+        while ((targetTicks-100) > Math.abs(latchingDC.getCurrentPosition()) && !isStopRequested()) {
             motorFrontRight.setPower(0.4);
             motorBackRight.setPower(-0.4);
             motorFrontLeft.setPower(-0.4);
@@ -1112,7 +1112,7 @@ public class Depot extends LinearOpMode {
         latchingDC.setMode(STOP_AND_RESET_ENCODER);
         latchingDC.setMode(RUN_USING_ENCODER);
 
-        while ((targetTicks-100) > Math.abs(latchingDC.getCurrentPosition())) {
+        while ((targetTicks-100) > Math.abs(latchingDC.getCurrentPosition()) && !isStopRequested()) {
             motorFrontRight.setPower(-0.43);
             motorBackRight.setPower(0.39);
             motorFrontLeft.setPower(0.43);
@@ -1140,7 +1140,7 @@ public class Depot extends LinearOpMode {
         latchingDC.setMode(STOP_AND_RESET_ENCODER);
         latchingDC.setMode(RUN_USING_ENCODER);
 
-        while ((targetTicks-100) > Math.abs(latchingDC.getCurrentPosition())) {
+        while ((targetTicks-100) > Math.abs(latchingDC.getCurrentPosition()) && !isStopRequested()) {
             motorFrontRight.setPower(-0.45);
             motorBackRight.setPower(0.4);
             motorFrontLeft.setPower(0.45);
@@ -1190,7 +1190,7 @@ public class Depot extends LinearOpMode {
 //    }
 
     public void LATCHING (double power) {
-        while (!latchUpperLimit.isPressed()) {
+        while (!latchUpperLimit.isPressed() && !isStopRequested()) {
             latchingDC.setPower(power);
         }
         latchingDC.setPower(0);
@@ -1203,7 +1203,7 @@ public class Depot extends LinearOpMode {
         yAxisDC.setMode(STOP_AND_RESET_ENCODER);
         yAxisDC.setMode(RUN_USING_ENCODER);
 
-        while ((targetTicks - 100) > Math.abs(yAxisDC.getCurrentPosition())) {
+        while ((targetTicks - 100) > Math.abs(yAxisDC.getCurrentPosition()) && !isStopRequested()) {
             motorFrontRight.setPower(power);
             motorFrontLeft.setPower(-power);
             motorBackLeft.setPower(-power);
@@ -1237,7 +1237,7 @@ public class Depot extends LinearOpMode {
         yAxisDC.setMode(STOP_AND_RESET_ENCODER);
         yAxisDC.setMode(RUN_USING_ENCODER);
 
-        while ((targetTicks - 100) > Math.abs(yAxisDC.getCurrentPosition())) {
+        while ((targetTicks - 100) > Math.abs(yAxisDC.getCurrentPosition()) && !isStopRequested()) {
             motorFrontRight.setPower(-power);
             motorFrontLeft.setPower(power);
             motorBackLeft.setPower(power);
@@ -1257,7 +1257,7 @@ public class Depot extends LinearOpMode {
         collectorDC.setMode(STOP_AND_RESET_ENCODER);
         collectorDC.setMode(RUN_USING_ENCODER);
 
-        while ((limit - 10) < Math.abs(collectorDC.getCurrentPosition())) {
+        while ((limit - 10) < Math.abs(collectorDC.getCurrentPosition()) && !isStopRequested()) {
             collectorDC.setPower(power);
         }
 
@@ -1270,7 +1270,7 @@ public class Depot extends LinearOpMode {
         collectorDC.setMode(STOP_AND_RESET_ENCODER);
         collectorDC.setMode(RUN_USING_ENCODER);
 
-        while (!collectorLimit.isPressed()) {
+        while (!collectorLimit.isPressed() && !isStopRequested()) {
             collectorDC.setPower(-power);
         }
 
@@ -1280,7 +1280,7 @@ public class Depot extends LinearOpMode {
 
     public void CSERVODOWN (double power) { //0.02
 
-        while (collectorServo.getPosition() < cMid) {
+        while (collectorServo.getPosition() < cMid && !isStopRequested()) {
             cPos = collectorServo.getPosition();
             cPos += power;
             collectorServo.setPosition(cPos);
@@ -1300,7 +1300,7 @@ public class Depot extends LinearOpMode {
 
     public void CSERVOUP (double power) { //0.07
 
-        while (collectorServo.getPosition() > cClose) {
+        while (collectorServo.getPosition() > cClose && !isStopRequested()) {
             cPos = collectorServo.getPosition();
             cPos -= power;
             collectorServo.setPosition(cPos);
@@ -1479,7 +1479,7 @@ public class Depot extends LinearOpMode {
         double targetTicks = mm * singleTicks;
         yAxisDC.setMode(STOP_AND_RESET_ENCODER);
         yAxisDC.setMode(RUN_USING_ENCODER);
-        while (Math.abs(yAxisDC.getCurrentPosition()) < (targetTicks - 100)) {
+        while (Math.abs(yAxisDC.getCurrentPosition()) < (targetTicks - 100) && !isStopRequested()) {
             motorFrontRight.setPower(rightPower);
             motorFrontLeft.setPower(leftPower);
             motorBackLeft.setPower(leftPower);
@@ -1495,7 +1495,7 @@ public class Depot extends LinearOpMode {
         double targetTicks = mm * singleTicks;
         yAxisDC.setMode(STOP_AND_RESET_ENCODER);
         yAxisDC.setMode(RUN_USING_ENCODER);
-        while (Math.abs(yAxisDC.getCurrentPosition()) < (targetTicks - 100)) {
+        while (Math.abs(yAxisDC.getCurrentPosition()) < (targetTicks - 100) && !isStopRequested()) {
             motorFrontRight.setPower(fr);
             motorFrontLeft.setPower(fl);
             motorBackLeft.setPower(bl);
@@ -1510,7 +1510,7 @@ public class Depot extends LinearOpMode {
     public void DROP() {
         dropperDC.setMode(STOP_AND_RESET_ENCODER);
         dropperDC.setMode(RUN_USING_ENCODER);
-        while (collectorServo.getPosition() > cDrop) {
+        while (collectorServo.getPosition() > cDrop && !isStopRequested()) {
             cPos = collectorServo.getPosition();
             cPos -= 0.07;
             collectorServo.setPosition(cPos);
@@ -1518,11 +1518,11 @@ public class Depot extends LinearOpMode {
         if (cPos < cDrop) {
             collectorServo.setPosition(cDrop);
         }
-        while (dropperDC.getCurrentPosition() < 900) {
+        while (dropperDC.getCurrentPosition() < 900 && !isStopRequested()) {
             dropperDC.setPower(1);
         }
         dropperDC.setPower(0);
-        while (dropperServo.getPosition() > dUnload) {
+        while (dropperServo.getPosition() > dUnload && !isStopRequested()) {
             dPos = dropperServo.getPosition();
             dPos -= 0.04;
             dropperServo.setPosition(dPos);
@@ -1535,7 +1535,7 @@ public class Depot extends LinearOpMode {
         } catch (InterruptedException e) {
 
         }
-        while (dropperServo.getPosition() > dLoad) {
+        while (dropperServo.getPosition() > dLoad && !isStopRequested()) {
             dPos = dropperServo.getPosition();
             dPos += 0.05;
             dropperServo.setPosition(dPos);
@@ -1544,11 +1544,11 @@ public class Depot extends LinearOpMode {
             dPos = dLoad;
             dropperServo.setPosition(dPos);
         }
-        while (dropperDC.getCurrentPosition() >= 400) {
+        while (dropperDC.getCurrentPosition() >= 400 && !isStopRequested()) {
             dropperDC.setPower(-1);
         }
         dropperDC.setPower(0);
-        while (!dropperLimit.isPressed()) {
+        while (!dropperLimit.isPressed() && !isStopRequested()) {
             dropperDC.setPower(-0.3);
         }
         dropperDC.setPower(0);
@@ -1557,7 +1557,7 @@ public class Depot extends LinearOpMode {
     public void DROPlow() {
         dropperDC.setMode(STOP_AND_RESET_ENCODER);
         dropperDC.setMode(RUN_USING_ENCODER);
-        while (collectorServo.getPosition() > cDrop) {
+        while (collectorServo.getPosition() > cDrop && !isStopRequested()) {
             cPos = collectorServo.getPosition();
             cPos -= 0.07;
             collectorServo.setPosition(cPos);
@@ -1565,11 +1565,11 @@ public class Depot extends LinearOpMode {
         if (cPos < cDrop) {
             collectorServo.setPosition(cDrop);
         }
-        while (dropperDC.getCurrentPosition() < 800) {
+        while (dropperDC.getCurrentPosition() < 800 && !isStopRequested()) {
             dropperDC.setPower(1);
         }
         dropperDC.setPower(0);
-        while (dropperServo.getPosition() > dUnload) {
+        while (dropperServo.getPosition() > dUnload && !isStopRequested()) {
             dPos = dropperServo.getPosition();
             dPos -= 0.04;
             dropperServo.setPosition(dPos);
@@ -1582,7 +1582,7 @@ public class Depot extends LinearOpMode {
         } catch (InterruptedException e) {
 
         }
-        while (dropperServo.getPosition() > dLoad) {
+        while (dropperServo.getPosition() > dLoad && !isStopRequested()) {
             dPos = dropperServo.getPosition();
             dPos += 0.05;
             dropperServo.setPosition(dPos);
@@ -1591,11 +1591,11 @@ public class Depot extends LinearOpMode {
             dPos = dLoad;
             dropperServo.setPosition(dPos);
         }
-        while (dropperDC.getCurrentPosition() >= 400) {
+        while (dropperDC.getCurrentPosition() >= 400 && !isStopRequested()) {
             dropperDC.setPower(-1);
         }
         dropperDC.setPower(0);
-        while (!dropperLimit.isPressed()) {
+        while (!dropperLimit.isPressed() && !isStopRequested()) {
             dropperDC.setPower(-0.3);
         }
         dropperDC.setPower(0);
@@ -1604,7 +1604,7 @@ public class Depot extends LinearOpMode {
     public void halfDROP() {
         dropperDC.setMode(STOP_AND_RESET_ENCODER);
         dropperDC.setMode(RUN_USING_ENCODER);
-        while (collectorServo.getPosition() > cDrop) {
+        while (collectorServo.getPosition() > cDrop && !isStopRequested()) {
             cPos = collectorServo.getPosition();
             cPos -= 0.07;
             collectorServo.setPosition(cPos);
@@ -1612,11 +1612,11 @@ public class Depot extends LinearOpMode {
         if (cPos < cDrop) {
             collectorServo.setPosition(cDrop);
         }
-        while (dropperDC.getCurrentPosition() < 1000) {
+        while (dropperDC.getCurrentPosition() < 1000 && !isStopRequested()) {
             dropperDC.setPower(1);
         }
         dropperDC.setPower(0);
-        while (dropperServo.getPosition() > dUnload) {
+        while (dropperServo.getPosition() > dUnload && !isStopRequested()) {
             dPos = dropperServo.getPosition();
             dPos -= 0.04;
             dropperServo.setPosition(dPos);
@@ -1629,7 +1629,7 @@ public class Depot extends LinearOpMode {
     public void halfDROP_low() {
         dropperDC.setMode(STOP_AND_RESET_ENCODER);
         dropperDC.setMode(RUN_USING_ENCODER);
-        while (collectorServo.getPosition() > cDrop) {
+        while (collectorServo.getPosition() > cDrop && !isStopRequested()) {
             cPos = collectorServo.getPosition();
             cPos -= 0.07;
             collectorServo.setPosition(cPos);
@@ -1637,11 +1637,11 @@ public class Depot extends LinearOpMode {
         if (cPos < cDrop) {
             collectorServo.setPosition(cDrop);
         }
-        while (dropperDC.getCurrentPosition() < 900) {
+        while (dropperDC.getCurrentPosition() < 900 && !isStopRequested()) {
             dropperDC.setPower(1);
         }
         dropperDC.setPower(0);
-        while (dropperServo.getPosition() > dUnload) {
+        while (dropperServo.getPosition() > dUnload && !isStopRequested()) {
             dPos = dropperServo.getPosition();
             dPos -= 0.04;
             dropperServo.setPosition(dPos);
@@ -1666,7 +1666,7 @@ public class Depot extends LinearOpMode {
         float gTimeStart = System.currentTimeMillis();
 
         runtime.reset();
-        while ((mrgyro.getIntegratedZValue() < (targetHeading)) && !loopBreak) {
+        while ((mrgyro.getIntegratedZValue() < (targetHeading)) && !loopBreak && !isStopRequested()) {
             error = targetHeading - mrgyro.getIntegratedZValue();
             correction = error * multiplicationFactor;
 
@@ -1722,7 +1722,7 @@ public class Depot extends LinearOpMode {
         telemetry.addData("time elapsed: ", exitTime);
         telemetry.update();
 
-        while (targetHeading != mrgyro.getIntegratedZValue()) {
+        while (targetHeading != mrgyro.getIntegratedZValue() && !isStopRequested()) {
             error = targetHeading - mrgyro.getIntegratedZValue();
             if (error > 0) {
                 //AXIS LEFT
@@ -1772,7 +1772,7 @@ public class Depot extends LinearOpMode {
         float gTime = 0;
         float gTimeStart = System.currentTimeMillis();
 
-        while ((mrgyro.getIntegratedZValue() < (targetHeading-1)) && !loopBreak) {
+        while ((mrgyro.getIntegratedZValue() < (targetHeading-1)) && !loopBreak && !isStopRequested()) {
             error = targetHeading - mrgyro.getIntegratedZValue();
             correction = error * multiplicationFactor;
 
@@ -1816,7 +1816,7 @@ public class Depot extends LinearOpMode {
             telemetry.update();
         }
 
-        while (targetHeading != mrgyro.getIntegratedZValue()) {
+        while (targetHeading != mrgyro.getIntegratedZValue() && !isStopRequested()) {
             error = targetHeading - mrgyro.getIntegratedZValue();
             if (error > 0) {
                 //AXIS LEFT
@@ -1864,7 +1864,7 @@ public class Depot extends LinearOpMode {
         boolean loopBreak = false;
 
         runtime.reset();
-        while ((mrgyro.getIntegratedZValue() > (targetHeading)) && (!loopBreak)) {
+        while ((mrgyro.getIntegratedZValue() > (targetHeading)) && (!loopBreak) && !isStopRequested()) {
             error = targetHeading - mrgyro.getIntegratedZValue();
             correction = error * multiplicationFactor;
 
@@ -1901,7 +1901,7 @@ public class Depot extends LinearOpMode {
             telemetry.update();
         }
 
-        while (targetHeading != mrgyro.getIntegratedZValue()) {
+        while (targetHeading != mrgyro.getIntegratedZValue() && !isStopRequested()) {
             error = targetHeading - mrgyro.getIntegratedZValue();
             if (error > 0) {
                 //AXIS LEFT
@@ -1946,7 +1946,7 @@ public class Depot extends LinearOpMode {
         float gTime = 0;
         float gTimeStart = System.currentTimeMillis();
 
-        while ((mrgyro.getIntegratedZValue() > (targetHeading+1)) && (gTime < maxT)) {
+        while ((mrgyro.getIntegratedZValue() > (targetHeading+1)) && (gTime < maxT) && !isStopRequested()) {
             error = targetHeading - mrgyro.getIntegratedZValue();
             correction = error * multiplicationFactor;
 
@@ -1979,7 +1979,7 @@ public class Depot extends LinearOpMode {
             telemetry.update();
         }
 
-        while (targetHeading != mrgyro.getIntegratedZValue()) {
+        while (targetHeading != mrgyro.getIntegratedZValue() && !isStopRequested()) {
             error = targetHeading - mrgyro.getIntegratedZValue();
             if (error > 0) {
                 //AXIS LEFT
@@ -2024,7 +2024,7 @@ public class Depot extends LinearOpMode {
         float gTime = 0;
         float gTimeStart = System.currentTimeMillis();
 
-        while ((Math.abs(mrgyro.getIntegratedZValue()) < (targetHeading-1)) && (gTime < maxT)) {
+        while ((Math.abs(mrgyro.getIntegratedZValue()) < (targetHeading-1)) && (gTime < maxT) && !isStopRequested()) {
             error = targetHeading - mrgyro.getIntegratedZValue();
             correction = error * multiplicationFactor;
 
@@ -2085,7 +2085,7 @@ public class Depot extends LinearOpMode {
         float gTime = 0;
         float gTimeStart = System.currentTimeMillis();
 
-        while ((mrgyro.getIntegratedZValue() < (targetHeading-1)) && !loopBreak) {
+        while ((mrgyro.getIntegratedZValue() < (targetHeading-1)) && !loopBreak && !isStopRequested()) {
             error = targetHeading - mrgyro.getIntegratedZValue();
             correction = error * multiplicationFactor;
 
@@ -2120,7 +2120,7 @@ public class Depot extends LinearOpMode {
             telemetry.update();
         }
 
-        while (targetHeading != mrgyro.getIntegratedZValue()) {
+        while (targetHeading != mrgyro.getIntegratedZValue() && !isStopRequested()) {
             error = targetHeading - mrgyro.getIntegratedZValue();
             if (error > 0) {
                 //AXIS LEFT
@@ -2168,7 +2168,7 @@ public class Depot extends LinearOpMode {
         float gTimeStart = System.currentTimeMillis();
 
         runtime.reset();
-        while ((mrgyro.getIntegratedZValue() < targetHeading) && (!loopBreak)) {
+        while ((mrgyro.getIntegratedZValue() < targetHeading) && (!loopBreak) && !isStopRequested()) {
             error = targetHeading - mrgyro.getIntegratedZValue();
             correction = error * multiplicationFactor;
 
@@ -2203,7 +2203,7 @@ public class Depot extends LinearOpMode {
             telemetry.update();
         }
 
-        while (targetHeading != mrgyro.getIntegratedZValue()) {
+        while (targetHeading != mrgyro.getIntegratedZValue() && !isStopRequested()) {
             error = targetHeading - mrgyro.getIntegratedZValue();
             if (error > 0) {
                 //BP LEFT
@@ -2251,7 +2251,7 @@ public class Depot extends LinearOpMode {
         float gTimeStart = System.currentTimeMillis();
 
         runtime.reset();
-        while ((mrgyro.getIntegratedZValue() > targetHeading) && (!loopBreak)) {
+        while ((mrgyro.getIntegratedZValue() > targetHeading) && (!loopBreak) && !isStopRequested()) {
             error = targetHeading - mrgyro.getIntegratedZValue();
             correction = error * multiplicationFactor;
 
@@ -2286,7 +2286,7 @@ public class Depot extends LinearOpMode {
             telemetry.update();
         }
 
-        while (targetHeading != mrgyro.getIntegratedZValue()) {
+        while (targetHeading != mrgyro.getIntegratedZValue() && !isStopRequested()) {
             error = targetHeading - mrgyro.getIntegratedZValue();
             if (error < 0) {
                 //BP LEFT
