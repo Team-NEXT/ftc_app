@@ -133,10 +133,10 @@ public class altControls extends LinearOpMode {
 //        cSpeed = 0.07;
 
 //        cExtPos = collectorDC.getCurrentPosition();
-        cOpen = 0.9;
-        cClose = 0.05;
-        cMid = 0.61;
-        cDrop = 0.25;
+        cOpen = 0.84;
+        cClose = 0.01;
+        cMid = 0.57;
+        cDrop = 0.21;
 
         //DROPPING
         dropperDC = hardwareMap.dcMotor.get("dropDC");
@@ -144,7 +144,7 @@ public class altControls extends LinearOpMode {
         dropperLimit = hardwareMap.get(ModernRoboticsTouchSensor.class, "D");
 
         dLoad = 0.71;
-        dUnload = 0.27;
+        dUnload = 0.28;
 
         dropperDC.setDirection(REVERSE);
 
@@ -725,6 +725,7 @@ public class altControls extends LinearOpMode {
                 if (gamepad1.right_stick_button) {
                     cExit = true;
                     sweeperServo.resetDeviceConfigurationForOpMode();
+                    sweeperServo.setPower(0.6);
                 }
 
             }
