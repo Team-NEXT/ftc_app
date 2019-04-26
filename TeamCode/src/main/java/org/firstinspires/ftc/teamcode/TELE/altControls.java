@@ -144,7 +144,7 @@ public class altControls extends LinearOpMode {
         dropperLimit = hardwareMap.get(ModernRoboticsTouchSensor.class, "D");
 
         dLoad = 0.71;
-        dUnload = 0.28;
+        dUnload = 0.25;
 
         dropperDC.setDirection(REVERSE);
 
@@ -441,13 +441,13 @@ public class altControls extends LinearOpMode {
 
                     sweeperServo.setPower(-0.6);
 
-                    while (collectorDC.getCurrentPosition() > 400 && !cExit) {
+                    while (collectorDC.getCurrentPosition() > 250 && !cExit) {
                         collectorDC.setPower(-1);
                     }
 
                     // sweeperServo.setPower(0);
 
-                    while (collectorDC.getCurrentPosition() <= 400 && !collectorLimit.isPressed() && !cExit) {
+                    while (collectorDC.getCurrentPosition() <= 250 && !collectorLimit.isPressed() && !cExit) {
                         collectorDC.setPower(-0.4);
                     }
 

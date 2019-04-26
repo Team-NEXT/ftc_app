@@ -159,7 +159,7 @@ public class Crater90 extends LinearOpMode {
         dropperLimit = hardwareMap.get(ModernRoboticsTouchSensor.class, "D");
 
         dLoad = 0.71;
-        dUnload = 0.29;
+        dUnload = 0.25;
 
         dropperDC.setDirection(REVERSE);
 
@@ -328,9 +328,9 @@ public class Crater90 extends LinearOpMode {
         telemetry.update();
 
         if (mineralPos == 1) {
-            GYROAXISRIGHT(-41, 0.009, 900);
+            GYROAXISRIGHT(-42, 0.009, 900);
 //            FORWARD(830, 0.3);
-            RAMPBACKWARD(1050, -0.1, -0.1, -0.6, 0.055, 0.065);
+            RAMPBACKWARD(1100, -0.1, -0.1, -0.5, 0.055, 0.065);
             GYROAXISRIGHT(-85, 0.0051, 900);
             FORWARD(175, 0.37);
             collectorDC.setPower(0);
@@ -381,7 +381,7 @@ public class Crater90 extends LinearOpMode {
             }
             flapServo.setPosition(FO);
             GYROAXISRIGHT(-18, 0.015, 900);
-            BACKWARD(200, 0.35);
+            BACKWARD(170, 0.35);
             sweeperServo.setPower(0);
 //            DROP();
 //            collectorDC.setPower(0);
