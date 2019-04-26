@@ -331,7 +331,7 @@ public class Crater extends LinearOpMode {
         if (mineralPos == 1) {
             GYROAXISRIGHT(-42, 0.009, 900);
 //            FORWARD(830, 0.3);
-            RAMPBACKWARD(1100, -0.1, -0.1, -0.5, 0.055, 0.065);
+            RAMPBACKWARD(1140, -0.1, -0.1, -0.5, 0.055, 0.065);
             GYROAXISRIGHT(-85, 0.0051, 900);
             FORWARD(175, 0.37);
             collectorDC.setPower(0);
