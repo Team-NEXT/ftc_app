@@ -148,7 +148,7 @@ public class Crater90 extends LinearOpMode {
 //        cExtPos = collectorDC.getCurrentPosition();
         cInitial = 0.01;
         cMarker = 0.66;
-        cOpen = 0.86;
+        cOpen = 0.84;
         cClose = 0.01;
         cMid = 0.57;
         cDrop = 0.21;

@@ -148,7 +148,7 @@ public class Depot extends LinearOpMode {
 //        cExtPos = collectorDC.getCurrentPosition();
         cInitial = 0.01;
         cMarker = 0.66;
-        cOpen = 0.86;
+        cOpen = 0.84;
         cClose = 0.01;
         cMid = 0.57;
         cDrop = 0.21;
@@ -285,9 +285,11 @@ public class Depot extends LinearOpMode {
         if (mineralPos == 1) {
             SWAYRIGHT(210);
 
+            gyroalign();
+
             FORWARD(50, 0.3);
 
-            GYROAXISRIGHT(-84, 0.005, 900);
+            GYROAXISRIGHT(-84, 0.006, 900);
             collectorDC.setPower(0);
             collectorDC.setMode(STOP_AND_RESET_ENCODER);
             collectorDC.setMode(RUN_USING_ENCODER);
@@ -314,7 +316,7 @@ public class Depot extends LinearOpMode {
             }
             collectorDC.setPower(0);
 
-            GYROAXISRIGHT(-33, 0.007, 900);
+            GYROAXISRIGHT(-34, 0.00759, 900);
             while (collectorServo.getPosition() < cOpen && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
                 cPos += 0.05;
@@ -326,7 +328,7 @@ public class Depot extends LinearOpMode {
             SWEEPER(1);
 
             collectorDC.setPower(0);
-            FORWARD(250, 0.3);
+            FORWARD(270, 0.3);
             Thread.sleep(700);
             while (collectorServo.getPosition() > cMid && !isStopRequested()) {
                 cPos = collectorServo.getPosition();
@@ -353,16 +355,18 @@ public class Depot extends LinearOpMode {
                 collectorServo.setPosition(cClose);
             }
             flapServo.setPosition(FO);
-            GYROLEFTPIVOT(28, 0.0093, 900);
-            BACKWARD(50, 0.2);
+            BACKWARD(25, 0.3);
+            GYROLEFTPIVOT(25, 0.01, 900);
+            BACKWARD(25, 0.25);
             SWEEPER(0);
             DROP();
             BACKWARD(130, 0.25);
 //            GYROAXISRIGHT(-69, 0.0056, 900);
-            GYROAXISLEFT(96, 0.00485, 900);
+            GYROAXISLEFT(94, 0.0054, 900);
             Thread.sleep(100);
-            RAMPFORWARD(830, 0.1, 0.1, 0.6, 0.06, 0.07);
-            GYROAXISLEFT(18, 0.0087, 900);
+//            RAMPFORWARD(830, 0.1, 0.1, 0.6, 0.06, 0.07);
+            FORWARD(830, 0.4);
+            GYROAXISLEFT(20, 0.009, 900);
             FORWARD(300, 0.35);
             collectorDC.setMode(STOP_AND_RESET_ENCODER);
             collectorDC.setMode(RUN_USING_ENCODER);
@@ -431,6 +435,8 @@ public class Depot extends LinearOpMode {
         if (mineralPos == 2) {
             SWAYRIGHT(310);
 
+            gyroalign();
+
             FORWARD(50, 0.3);
 
             GYROAXISRIGHT(-84, 0.0052, 900);
@@ -485,14 +491,15 @@ public class Depot extends LinearOpMode {
             Thread.sleep(600);
             SWEEPER(0);
             DROP();
-            Thread.sleep(200);
+            Thread.sleep(100);
             BACKWARD(180, 0.25);
             GYROAXISLEFT(85, 0.0049, 900);
 //            GYROAXISLEFT(85, 0.006, 900);
 //            RAMPFORWARD(500, 0.1, 0.1, 0.5, 0.05, 0.06);
 
-            RAMPFORWARD(700, 0.1, 0.1, 0.4, 0.05, 0.06);
-            GYROAXISLEFT(19, 0.0087, 900);
+//            RAMPFORWARD(700, 0.1, 0.1, 0.4, 0.05, 0.06);
+            FORWARD(700, 0.4);
+            GYROAXISLEFT(19, 0.009, 900);
             FORWARD(200, 0.3);
             collectorDC.setMode(STOP_AND_RESET_ENCODER);
             collectorDC.setMode(RUN_USING_ENCODER);
@@ -560,6 +567,8 @@ public class Depot extends LinearOpMode {
 
         if (mineralPos == 3) {
             SWAYRIGHT(210);
+
+            gyroalign();
 
             FORWARD(50, 0.3);
 
@@ -636,7 +645,8 @@ public class Depot extends LinearOpMode {
             FORWARD(180, 0.3);
             GYROAXISLEFT(100, 0.0042, 900);
             Thread.sleep(200);
-            RAMPFORWARD(450, 0.1, 0.1, 0.5, 0.01, 0.02);
+//            RAMPFORWARD(450, 0.1, 0.1, 0.5, 0.01, 0.02);
+            FORWARD(450, 0.4);
             collectorDC.setMode(STOP_AND_RESET_ENCODER);
             collectorDC.setMode(RUN_USING_ENCODER);
             while (collectorDC.getCurrentPosition()<750 && !isStopRequested()) {
@@ -2324,6 +2334,31 @@ public class Depot extends LinearOpMode {
         motorBackLeft.setPower(0);
         motorBackRight.setPower(0);
 
+    }
+
+    public void gyroalign() {
+        while (mrgyro.getIntegratedZValue() != 0) {
+            if (mrgyro.getIntegratedZValue() > 0) {
+                motorFrontRight.setPower(-0.15);
+                motorFrontLeft.setPower(0.15);
+                motorBackLeft.setPower(0.15);
+                motorBackRight.setPower(-0.15);
+            } else if (mrgyro.getIntegratedZValue() < 0) {
+                motorFrontRight.setPower(0.15);
+                motorFrontLeft.setPower(-0.15);
+                motorBackLeft.setPower(-0.15);
+                motorBackRight.setPower(0.15);
+            } else {
+                motorFrontRight.setPower(0);
+                motorFrontLeft.setPower(0);
+                motorBackLeft.setPower(0);
+                motorBackRight.setPower(0);
+            }
+        }
+        motorFrontRight.setPower(0);
+        motorFrontLeft.setPower(0);
+        motorBackLeft.setPower(0);
+        motorBackRight.setPower(0);
     }
 
 }
